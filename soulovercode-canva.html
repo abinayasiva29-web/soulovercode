@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Soul Over Code</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Architects+Daughter&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --beige:#F5EDD8;
+  --tan:#D4B896;
+  --dark-tan:#B8935A;
+  --brown:#1A0F05;
+  --terra:#C1440E;
+  --yellow:#F2C94C;
+  --cream:#FBF6EC;
+  --sage:#5C7A4E;
+}
+body{background:var(--beige);color:var(--brown);font-family:'Architects Daughter',cursive;overflow-x:hidden;}
+
+/* NAV */
+nav{display:flex;justify-content:space-between;align-items:center;padding:1rem 3rem;background:var(--cream);border-bottom:3px solid var(--brown);}
+.logo{font-family:'Caveat',cursive;font-size:26px;font-weight:700;color:var(--terra);}
+.nav-links{display:flex;gap:2rem;list-style:none;}
+.nav-links a{font-family:'Caveat',cursive;font-size:18px;color:var(--brown);text-decoration:none;}
+.nav-links a:hover{color:var(--terra);}
+.nav-btn{font-family:'Caveat',cursive;font-size:17px;background:var(--terra);color:var(--cream);padding:8px 22px;border:2.5px solid var(--brown);border-radius:6px;text-decoration:none;}
+
+/* HERO SECTION - exactly like canva design */
+.hero{display:grid;grid-template-columns:1fr 1fr;border-bottom:3px solid var(--brown);min-height:85vh;}
+
+.hero-left{background:var(--beige);padding:3.5rem 3rem;display:flex;flex-direction:column;justify-content:center;border-right:3px solid var(--brown);}
+.hero-label{font-family:'Caveat',cursive;font-size:14px;letter-spacing:3px;text-transform:uppercase;color:var(--terra);margin-bottom:1.2rem;}
+.hero-title{font-family:'Caveat',cursive;font-size:72px;font-weight:700;line-height:1;color:var(--brown);margin-bottom:1.2rem;}
+.hero-title .red{color:var(--terra);}
+.hero-tagline{font-family:'Architects Daughter',cursive;font-size:15px;line-height:1.8;color:rgba(26,15,5,0.7);max-width:400px;margin-bottom:2rem;}
+.hero-btns{display:flex;gap:12px;margin-bottom:1.5rem;}
+.btn-red{font-family:'Caveat',cursive;font-size:18px;background:var(--terra);color:var(--cream);padding:12px 26px;border:2.5px solid var(--brown);border-radius:6px;text-decoration:none;}
+.btn-outline{font-family:'Caveat',cursive;font-size:18px;background:transparent;color:var(--brown);padding:12px 26px;border:2.5px solid var(--brown);border-radius:6px;text-decoration:none;}
+.counter{display:inline-flex;align-items:center;gap:8px;font-family:'Caveat',cursive;font-size:18px;padding:8px 16px;border:2px dashed var(--terra);border-radius:8px;background:rgba(242,201,76,0.1);}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--terra);animation:blink 1.5s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0.3;}}
+
+/* HERO RIGHT - hand drawn illustrations like canva */
+.hero-right{background:var(--beige);position:relative;display:flex;align-items:center;justify-content:center;padding:2rem;}
+.hero-right svg{width:100%;max-width:500px;height:auto;}
+
+/* TAN SECTION - like the brown section in canva */
+.about-section{background:var(--tan);border-top:3px solid var(--brown);border-bottom:3px solid var(--brown);padding:3.5rem 3rem;display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:center;}
+.about-title{font-family:'Caveat',cursive;font-size:52px;font-weight:700;color:var(--brown);margin-bottom:1rem;}
+.about-text{font-family:'Architects Daughter',cursive;font-size:15px;line-height:1.8;color:rgba(26,15,5,0.75);}
+.about-right svg{width:100%;max-width:380px;}
+
+/* TICKER */
+.ticker{background:var(--brown);padding:12px 0;overflow:hidden;border-top:3px solid var(--brown);}
+.ticker-wrap{display:flex;gap:2.5rem;animation:scroll 18s linear infinite;width:max-content;}
+.ticker-item{font-family:'Caveat',cursive;font-size:20px;color:var(--beige);white-space:nowrap;display:flex;align-items:center;gap:8px;}
+@keyframes scroll{0%{transform:translateX(0);}100%{transform:translateX(-50%);}}
+
+/* MANIFESTO */
+.manifesto{background:var(--brown);padding:5rem 3rem;text-align:center;}
+.manifesto-quote{font-family:'Caveat',cursive;font-size:56px;font-weight:700;color:var(--beige);line-height:1.2;max-width:780px;margin:0 auto 1rem;}
+.manifesto-quote .yellow{color:var(--yellow);}
+.manifesto-sub{font-family:'Architects Daughter',cursive;font-size:13px;letter-spacing:3px;text-transform:uppercase;color:rgba(245,237,216,0.4);}
+
+/* SERVICES */
+.services{padding:4.5rem 3rem;max-width:1300px;margin:0 auto;}
+.sec-label{font-family:'Caveat',cursive;font-size:14px;letter-spacing:3px;text-transform:uppercase;color:var(--terra);margin-bottom:8px;}
+.sec-title{font-family:'Caveat',cursive;font-size:46px;font-weight:700;color:var(--brown);margin-bottom:2.5rem;}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px;}
+.card{background:var(--cream);border:2.5px solid var(--brown);border-radius:8px;padding:1.5rem;transition:transform 0.15s;cursor:pointer;position:relative;}
+.card:hover{transform:translateY(-3px);border-color:var(--terra);}
+.card:nth-child(odd){transform:rotate(-0.4deg);}
+.card:nth-child(even){transform:rotate(0.4deg);}
+.card:nth-child(odd):hover{transform:rotate(-0.4deg) translateY(-3px);}
+.card:nth-child(even):hover{transform:rotate(0.4deg) translateY(-3px);}
+.card-icon{font-size:30px;margin-bottom:10px;}
+.card-name{font-family:'Caveat',cursive;font-size:20px;font-weight:700;color:var(--brown);margin-bottom:4px;}
+.card-desc{font-size:12px;color:rgba(26,15,5,0.6);line-height:1.5;}
+.card-badge{position:absolute;top:10px;right:10px;font-family:'Caveat',cursive;font-size:11px;background:var(--terra);color:var(--cream);padding:2px 8px;border-radius:4px;transform:rotate(3deg);}
+
+/* WHY */
+.why{background:var(--cream);border-top:3px solid var(--brown);border-bottom:3px solid var(--brown);padding:4.5rem 3rem;}
+.why-inner{max-width:1100px;margin:0 auto;}
+.why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;margin-top:2.5rem;}
+.why-card{border:2.5px solid var(--brown);border-radius:8px;padding:2rem;background:var(--beige);position:relative;}
+.why-card:nth-child(1){transform:rotate(-0.5deg);}
+.why-card:nth-child(2){transform:rotate(0.3deg);}
+.why-card:nth-child(3){transform:rotate(-0.2deg);}
+.why-num{font-family:'Caveat',cursive;font-size:80px;font-weight:700;color:rgba(193,68,14,0.1);position:absolute;top:5px;right:12px;line-height:1;}
+.why-title{font-family:'Caveat',cursive;font-size:28px;font-weight:700;color:var(--terra);margin-bottom:0.75rem;}
+.why-text{font-size:13px;color:rgba(26,15,5,0.7);line-height:1.7;}
+
+/* BADGE SECTION */
+.badge-wrap{padding:4.5rem 3rem;max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:center;}
+.badge-circle-big{width:270px;height:270px;border-radius:50%;border:4px solid var(--brown);background:var(--beige);display:flex;align-items:center;justify-content:center;cursor:pointer;margin:0 auto;transition:transform 0.2s;position:relative;}
+.badge-circle-big:hover{transform:scale(1.04);}
+.badge-inner-big{width:240px;height:240px;border-radius:50%;border:2px dashed var(--terra);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;}
+.badge-word-big{font-family:'Caveat',cursive;font-size:18px;font-weight:700;letter-spacing:4px;color:var(--terra);text-transform:uppercase;}
+.badge-run-big{font-size:56px;animation:runBadge 0.5s ease-in-out infinite alternate;}
+@keyframes runBadge{0%{transform:translateX(-8px) rotate(-10deg);}100%{transform:translateX(8px) rotate(10deg);}}
+.badge-yr-big{font-size:11px;color:rgba(193,68,14,0.5);letter-spacing:1px;}
+.badge-text-side h2{font-family:'Caveat',cursive;font-size:42px;font-weight:700;color:var(--brown);margin-bottom:1rem;}
+.badge-text-side p{font-size:14px;color:rgba(26,15,5,0.7);line-height:1.7;margin-bottom:1.5rem;}
+.dl-btn{font-family:'Caveat',cursive;font-size:20px;background:var(--terra);color:var(--cream);padding:14px 28px;border:2.5px solid var(--brown);border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:transform 0.2s;}
+.dl-btn:hover{transform:scale(1.03);}
+
+/* JOIN */
+.join{background:var(--terra);border-top:3px solid var(--brown);padding:5rem 3rem;text-align:center;}
+.join h2{font-family:'Caveat',cursive;font-size:54px;font-weight:700;color:var(--cream);margin-bottom:1rem;}
+.join p{font-family:'Architects Daughter',cursive;font-size:15px;color:rgba(251,246,236,0.8);margin-bottom:2.5rem;}
+.join-form{display:flex;gap:12px;max-width:520px;margin:0 auto;justify-content:center;flex-wrap:wrap;}
+.join-form input{flex:1;min-width:220px;padding:14px 20px;border:2.5px solid var(--brown);border-radius:8px;font-family:'Caveat',cursive;font-size:18px;background:var(--cream);color:var(--brown);outline:none;}
+.join-form button{font-family:'Caveat',cursive;font-size:18px;background:var(--brown);color:var(--cream);padding:14px 26px;border:2.5px solid var(--brown);border-radius:8px;cursor:pointer;}
+.join-form button:hover{background:rgba(26,15,5,0.8);}
+.success{display:none;font-family:'Caveat',cursive;font-size:20px;color:var(--cream);margin-top:1rem;padding:10px 24px;border:2px dashed rgba(251,246,236,0.4);border-radius:8px;}
+
+/* MODAL */
+.overlay{display:none;position:fixed;inset:0;background:rgba(26,15,5,0.75);z-index:999;align-items:center;justify-content:center;}
+.overlay.show{display:flex;}
+.modal{background:var(--cream);border:3px solid var(--brown);border-radius:12px;padding:2.5rem;max-width:400px;width:90%;text-align:center;}
+.modal h3{font-family:'Caveat',cursive;font-size:30px;color:var(--brown);margin-bottom:0.75rem;}
+.modal p{font-size:13px;color:rgba(26,15,5,0.7);margin-bottom:1.5rem;line-height:1.6;}
+.modal input{width:100%;padding:12px 16px;border:2px solid var(--brown);border-radius:8px;font-family:'Caveat',cursive;font-size:18px;background:var(--beige);color:var(--brown);outline:none;margin-bottom:12px;}
+.modal-btn{width:100%;font-family:'Caveat',cursive;font-size:20px;background:var(--terra);color:var(--cream);padding:14px;border:2px solid var(--brown);border-radius:8px;cursor:pointer;}
+.modal-close{margin-top:10px;font-family:'Caveat',cursive;font-size:15px;color:rgba(26,15,5,0.4);cursor:pointer;background:none;border:none;}
+
+/* FOOTER */
+footer{background:var(--brown);padding:2rem 3rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;}
+.foot-logo{font-family:'Caveat',cursive;font-size:22px;color:var(--terra);}
+.foot-text{font-family:'Architects Daughter',cursive;font-size:12px;color:rgba(245,237,216,0.35);}
+
+@media(max-width:768px){
+  nav{padding:1rem 1.5rem;}
+  .nav-links{display:none;}
+  .hero{grid-template-columns:1fr;}
+  .hero-right{display:none;}
+  .hero-left{padding:2.5rem 1.5rem;}
+  .hero-title{font-size:48px;}
+  .about-section{grid-template-columns:1fr;padding:2.5rem 1.5rem;}
+  .manifesto-quote{font-size:36px;}
+  .services{padding:3rem 1.5rem;}
+  .why{padding:3rem 1.5rem;}
+  .why-grid{grid-template-columns:1fr;}
+  .badge-wrap{grid-template-columns:1fr;padding:3rem 1.5rem;gap:2.5rem;}
+  .join{padding:3rem 1.5rem;}
+  footer{padding:1.5rem;flex-direction:column;text-align:center;}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">Soul Over Code</div>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#services">Services</a></li>
+    <li><a href="#badge">Badge</a></li>
+    <li><a href="#join">Join</a></li>
+  </ul>
+  <a href="#join" class="nav-btn">Join us ✦</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-left">
+    <div class="hero-label">✦ Human creativity movement</div>
+    <h1 class="hero-title">Soul<br>Over<br><span class="red">Code.</span></h1>
+    <p class="hero-tagline">When machines create, humans inspire. We are a global movement celebrating what humans do that AI never can.</p>
+    <div class="hero-btns">
+      <a href="#join" class="btn-red">Join the movement</a>
+      <a href="#services" class="btn-outline">See our work</a>
+    </div>
+    <div class="counter">
+      <span class="dot"></span>
+      <span id="heroCount">0</span> humans have joined
+    </div>
+  </div>
+
+  <div class="hero-right">
+    <!-- Hand drawn humans celebrating - exactly like canva style -->
+    <svg viewBox="0 0 500 480" xmlns="http://www.w3.org/2000/svg" style="max-width:500px;width:100%;">
+
+      <!-- PERSON 1 - Trophy raised, celebrating (LEFT) like canva -->
+      <g transform="translate(30,20)">
+        <!-- head -->
+        <circle cx="70" cy="45" r="35" fill="#F5EDD8" stroke="#1A0F05" stroke-width="3"/>
+        <!-- hair wavy -->
+        <path d="M36 32 Q45 10 70 12 Q95 10 104 32 Q108 15 95 5 Q70 -5 45 5 Q32 15 36 32Z" fill="#1A0F05"/>
+        <!-- face happy -->
+        <circle cx="58" cy="42" r="4.5" fill="#1A0F05"/>
+        <circle cx="82" cy="42" r="4.5" fill="#1A0F05"/>
+        <path d="M56 58 Q70 70 84 58" fill="none" stroke="#1A0F05" stroke-width="2.5" stroke-linecap="round"/>
+        <!-- body jacket -->
+        <path d="M45 78 Q70 72 95 78 L100 155 L40 155Z" fill="#1A0F05" stroke="#1A0F05" stroke-width="2"/>
+        <!-- shirt collar -->
+        <path d="M58 78 L70 95 L82 78" fill="#F5EDD8" stroke="#1A0F05" stroke-width="2"/>
+        <!-- arm UP with trophy -->
+        <path d="M45 90 Q25 65 15 35" fill="none" stroke="#1A0F05" stroke-width="4" stroke-linecap="round"/>
+        <!-- hand -->
+        <circle cx="13" cy="30" r="10" fill="#F5EDD8" stroke="#1A0F05" stroke-width="2.5"/>
+        <!-- TROPHY -->
+        <rect x="0" y="0" width="26" height="20" rx="4" fill="#F2C94C" stroke="#1A0F05" stroke-width="2" transform="translate(0,-22) rotate(-15 13 10)"/>
+        <rect x="9" y="-3" width="8" height="12" fill="#F2C94C" stroke="#1A0F05" stroke-width="1.5" transform="translate(0,-22) rotate(-15 13 10)"/>
+        <!-- other arm side -->
+        <path d="M95 90 Q118 95 128 105" fill="none" stroke="#1A0F05" stroke-width="4" stroke-linecap="round"/>
+        <circle cx="131" cy="108" r="10" fill="#F5EDD8" stroke="#1A0F05" stroke-width="2.5"/>
+        <!-- legs -->
+        <path d="M57 155 L50 220" fill="none" stroke="#1A0F05" stroke-width="4.5" stroke-linecap="round"/>
+        <path d="M83 155 L90 220" fill="none" stroke="#1A0F05" stroke-width="4.5" stroke-linecap="round"/>
+        <!-- shoes -->
+        <ellipse cx="47" cy="223" rx="16" ry="8" fill="#1A0F05"/>
+        <ellipse cx="93" cy="223" rx="16" ry="8" fill="#1A0F05"/>
+        <!-- pants -->
+        <path d="M45 138 Q35 180 50 218 L57 155 L83 155 L90 218 Q105 180 95 138Z" fill="#333" stroke="#1A0F05" stroke-width="2"/>
+      </g>
+
+      <!-- PERSON 2 - arms wide open (CENTER TALL) like canva -->
+      <g transform="translate(170,10)">
+        <!-- head -->
+        <circle cx="75" cy="50" r="38" fill="#F5EDD8" stroke="#1A0F05" stroke-width="3"/>
+        <!-- curly hair -->
+        <path d="M38 38 Q38 5 75 8 Q112 5 112 38" fill="#1A0F05" stroke="#1A0F05" stroke-width="1"/>
+        <circle cx="42" cy="22" r="12" fill="#1A0F05"/>
+        <circle cx="108" cy="22" r="12" fill="#1A0F05"/>
+        <circle cx="75" cy="12" r="12" fill="#1A0F05"/>
+        <!-- face big smile -->
+        <circle cx="62" cy="48" r="5" fill="#1A0F05"/>
+        <circle cx="88" cy="48" r="5" fill="#1A0F05"/>
+        <path d="M58 64 Q75 78 92 64" fill="none" stroke="#1A0F05" stroke-width="3" stroke-linecap="round"/>
+        <!-- body dress/top -->
+        <path d="M48 86 Q75 80 102 86 L108 185 L42 185Z" fill="#C1440E" stroke="#1A0F05" stroke-width="2.5"/>
+        <!-- arms wide open -->
+        <path d="M48 100 Q20 90 -10 82" fill="none" stroke="#1A0F05" stroke-width="4" stroke-linecap="round"/>
+        <circle cx="-14" cy="80" r="12" fill="#F5EDD8" stroke="#1A0F05" stroke-width="2.5"/>
+        <path d="M102 100 Q130 90 160 82" fill="none" stroke="#1A0F05" stroke-width="4" stroke-linecap="round"/>
+        <circle cx="164" cy="80" r="12" fill="#F5EDD8" stroke="#1A0F05" stroke-width="2.5"/>
+        <!-- skirt flare -->
+        <path d="M42 150 L25 230 L75 218 L125 230 L108 150Z" fill="#C1440E" stroke="#1A0F05" stroke-width="2"/>
+        <!-- legs -->
+        <path d="M62 230 L55 290" fill="none" stroke="#1A0F05" stroke-width="4.5" stroke-linecap="round"/>
+        <path d="M88 230 L95 290" fill="none" stroke="#1A0F05" stroke-width="4.5" stroke-linecap="round"/>
+        <ellipse cx="52" cy="293" rx="17" ry="8" fill="#1A0F05"/>
+        <ellipse cx="98" cy="293" rx="17" ry="8" fill="#1A0F05"/>
+        <!-- radiance lines -->
+        <line x1="75" y1="8" x2="75" y2="-15" stroke="#F2C94C" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="112" y1="20" x2="128" y2="8" stroke="#F2C94C" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="38" y1="20" x2="22" y2="8" stroke="#F2C94C" stroke-width="2.5" stroke-linecap="round"/>
+      </g>
+
+      <!-- PERSON 3 - jumping or side pose (RIGHT) -->
+      <g transform="translate(350,40)">
+        <!-- head -->
+        <circle cx="60" cy="40" r="32" fill="#F5EDD8" stroke="#1A0F05" stroke-width="3"/>
+        <!-- hair straight short -->
+        <path d="M30 28 Q45 8 75 10 Q88 8 92 28 Q92 12 75 5 Q45 3 30 15Z" fill="#1A0F05"/>
+        <!-- face -->
+        <circle cx="50" cy="38" r="4" fill="#1A0F05"/>
+        <circle cx="70" cy="38" r="4" fill="#1A0F05"/>
+        <path d="M48 52 Q60 62 72 52" fill="none" stroke="#1A0F05" stroke-width="2.5" stroke-linecap="round"/>
+        <!-- body -->
+        <path d="M38 70 Q60 65 82 70 L86 148 L34 148Z" fill="#6B8F5E" stroke="#1A0F05" stroke-width="2.5"/>
+        <!-- arm one up waving -->
+        <path d="M38 82 Q18 60 8 38" fill="none" stroke="#1A0F05" stroke-width="4" stroke-linecap="round"/>
+        <circle cx="6" cy="34" r="10" fill="#F5EDD8" stroke="#1A0F05" stroke-width="2.5"/>
+        <!-- arm other side -->
+        <path d="M82 85 Q100 90 112 98" fill="none" stroke="#1A0F05" stroke-width="4" stroke-linecap="round"/>
+        <circle cx="115" cy="100" r="10" fill="#F5EDD8" stroke="#1A0F05" stroke-width="2.5"/>
+        <!-- legs -->
+        <path d="M50 148 L44 210" fill="none" stroke="#1A0F05" stroke-width="4.5" stroke-linecap="round"/>
+        <path d="M70 148 L76 210" fill="none" stroke="#1A0F05" stroke-width="4.5" stroke-linecap="round"/>
+        <ellipse cx="41" cy="213" rx="15" ry="7" fill="#1A0F05"/>
+        <ellipse cx="79" cy="213" rx="15" ry="7" fill="#1A0F05"/>
+        <!-- pants -->
+        <path d="M34 130 L28 208 L44 204 L60 208 L60 148 L60 148 L70 148 L70 208 L86 204 L92 208 L86 130Z" fill="#333" stroke="#1A0F05" stroke-width="2"/>
+      </g>
+
+      <!-- Decorative elements like Canva -->
+      <text x="155" y="400" font-family="'Caveat',cursive" font-size="22" fill="#1A0F05" font-weight="700" opacity="0.15">✦ HUMAN MADE ✦</text>
+      <circle cx="450" cy="30" r="20" fill="none" stroke="#C1440E" stroke-width="2" stroke-dasharray="5 3" opacity="0.4"/>
+      <circle cx="30" cy="380" r="14" fill="none" stroke="#6B8F5E" stroke-width="2" stroke-dasharray="4 3" opacity="0.4"/>
+      <text x="20" y="460" font-family="'Architects Daughter',cursive" font-size="13" fill="#C1440E" opacity="0.5">When machines create, humans inspire.</text>
+
+      <!-- Running human bottom -->
+      <g id="runnerHero">
+        <circle cx="0" cy="430" r="10" fill="none" stroke="#C1440E" stroke-width="2.5"/>
+        <line x1="0" y1="440" x2="0" y2="460" stroke="#C1440E" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="0" y1="448" x2="-12" y2="456" stroke="#C1440E" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="0" y1="448" x2="14" y2="442" stroke="#C1440E" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="0" y1="460" x2="-12" y2="474" stroke="#C1440E" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="0" y1="460" x2="14" y2="472" stroke="#C1440E" stroke-width="2.5" stroke-linecap="round"/>
+      </g>
+
+      <script>
+        let rx = 20;
+        function animRunner(){
+          rx += 2.5;
+          if(rx > 500) rx = 20;
+          document.getElementById('runnerHero').setAttribute('transform','translate('+rx+',0)');
+          requestAnimationFrame(animRunner);
+        }
+        animRunner();
+      </script>
+    </svg>
+  </div>
+</section>
+
+<!-- TAN "ABOUT OUR MOVEMENT" SECTION - like canva -->
+<section class="about-section" id="about">
+  <div>
+    <h2 class="about-title">About our<br>movement</h2>
+    <p class="about-text">We are a global community of human creators who believe that emotion, imperfection and soul cannot be automated. In a world where AI can generate anything, we celebrate what only humans can truly create — work that carries a why, a story, and a life behind it.</p>
+  </div>
+  <div style="display:flex;align-items:center;justify-content:center;">
+    <!-- group of humans talking - like canva brown section -->
+    <svg viewBox="0 0 380 220" xmlns="http://www.w3.org/2000/svg" style="max-width:380px;width:100%;">
+      <!-- Person 1 talking -->
+      <g transform="translate(20,20)">
+        <circle cx="45" cy="35" r="28" fill="#F5EDD8" stroke="#1A0F05" stroke-width="2.5"/>
+        <path d="M20 22 Q45 8 70 22 Q70 8 45 2 Q20 6 20 22Z" fill="#1A0F05"/>
+        <circle cx="35" cy="33" r="3.5" fill="#1A0F05"/>
+        <circle cx="55" cy="33" r="3.5" fill="#1A0F05"/>
+        <path d="M34 46 Q45 54 56 46" fill="none" stroke="#1A0F05" stroke-width="2" stroke-linecap="round"/>
+        <path d="M28 62 Q45 57 62 62 L65 130 L25 130Z" fill="#1A0F05" stroke="#1A0F05" stroke-width="2"/>
+        <path d="M28 78 Q10 82 2 95" fill="none" stroke="#1A0F05" stroke-width="3" stroke-linecap="round"/>
+        <path d="M62 78 Q80 75 88 80" fill="none" stroke="#1A0F05" stroke-width="3" stroke-linecap="round"/>
+        <path d="M35 130 L30 180" fill="none" stroke="#1A0F05" stroke-width="3.5" stroke-linecap="round"/>
+        <path d="M55 130 L60 180" fill="none" stroke="#1A0F05" stroke-width="3.5" stroke-linecap="round"/>
+        <ellipse cx="27" cy="183" rx="12" ry="6" fill="#1A0F05"/>
+        <ellipse cx="63" cy="183" rx="12" ry="6" fill="#1A0F05"/>
+      </g>
+      <!-- Person 2 -->
+      <g transform="translate(130,10)">
+        <circle cx="55" cy="40" r="32" fill="#F5EDD8" stroke="#1A0F05" stroke-width="2.5"/>
+        <path d="M25 28 Q55 10 85 28 Q88 8 55 2 Q22 6 25 28Z" fill="#1A0F05"/>
+        <circle cx="43" cy="37" r="4" fill="#1A0F05"/>
+        <circle cx="67" cy="37" r="4" fill="#1A0F05"/>
+        <path d="M42 54 Q55 64 68 54" fill="none" stroke="#C1440E" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M32 70 Q55 64 78 70 L82 150 L28 150Z" fill="#B8935A" stroke="#1A0F05" stroke-width="2"/>
+        <path d="M32 85 Q10 88 2 100" fill="none" stroke="#1A0F05" stroke-width="3" stroke-linecap="round"/>
+        <path d="M78 85 Q100 80 110 78" fill="none" stroke="#1A0F05" stroke-width="3" stroke-linecap="round"/>
+        <path d="M42 150 L36 205" fill="none" stroke="#1A0F05" stroke-width="4" stroke-linecap="round"/>
+        <path d="M68 150 L74 205" fill="none" stroke="#1A0F05" stroke-width="4" stroke-linecap="round"/>
+        <ellipse cx="33" cy="208" rx="14" ry="7" fill="#1A0F05"/>
+        <ellipse cx="77" cy="208" rx="14" ry="7" fill="#1A0F05"/>
+      </g>
+      <!-- Person 3 -->
+      <g transform="translate(255,25)">
+        <circle cx="50" cy="35" r="27" fill="#F5EDD8" stroke="#1A0F05" stroke-width="2.5"/>
+        <path d="M25 23 Q50 8 75 23 Q75 8 50 2 Q25 6 25 23Z" fill="#1A0F05"/>
+        <circle cx="40" cy="32" r="3.5" fill="#1A0F05"/>
+        <circle cx="60" cy="32" r="3.5" fill="#1A0F05"/>
+        <path d="M38 46 Q50 55 62 46" fill="none" stroke="#1A0F05" stroke-width="2" stroke-linecap="round"/>
+        <path d="M30 62 Q50 56 70 62 L73 135 L27 135Z" fill="#333" stroke="#1A0F05" stroke-width="2"/>
+        <path d="M30 75 Q12 78 4 88" fill="none" stroke="#1A0F05" stroke-width="3" stroke-linecap="round"/>
+        <path d="M70 75 Q88 72 98 80" fill="none" stroke="#1A0F05" stroke-width="3" stroke-linecap="round"/>
+        <path d="M38 135 L32 186" fill="none" stroke="#1A0F05" stroke-width="3.5" stroke-linecap="round"/>
+        <path d="M62 135 L68 186" fill="none" stroke="#1A0F05" stroke-width="3.5" stroke-linecap="round"/>
+        <ellipse cx="29" cy="189" rx="12" ry="6" fill="#1A0F05"/>
+        <ellipse cx="71" cy="189" rx="12" ry="6" fill="#1A0F05"/>
+      </g>
+      <!-- speech bubble -->
+      <path d="M88 60 Q100 50 128 52 Q145 52 146 65 Q146 78 128 80 L120 88 L115 78 Q95 80 88 70Z" fill="#F2C94C" stroke="#1A0F05" stroke-width="2"/>
+      <text x="100" y="70" font-family="'Caveat',cursive" font-size="12" fill="#1A0F05">Human ✦</text>
+    </svg>
+  </div>
+</section>
+
+<div class="ticker">
+  <div class="ticker-wrap">
+    <div class="ticker-item">🏃 Resume writing</div><div class="ticker-item">✦</div>
+    <div class="ticker-item">🎨 Hand drawing</div><div class="ticker-item">✦</div>
+    <div class="ticker-item">📝 Copywriting</div><div class="ticker-item">✦</div>
+    <div class="ticker-item">🎵 Music</div><div class="ticker-item">✦</div>
+    <div class="ticker-item">📖 Poetry</div><div class="ticker-item">✦</div>
+    <div class="ticker-item">📸 Photography</div><div class="ticker-item">✦</div>
+    <div class="ticker-item">🏺 Pottery</div><div class="ticker-item">✦</div>
+    <div class="ticker-item">✒️ Calligraphy</div><div class="ticker-item">✦</div>
+    <div class="ticker-item">💃 Dance</div><div class="ticker-item">✦</div>
+    <div class="ticker-item">🗿 Sculpture</div><div class="ticker-item">✦</div>
+    <div class="ticker-item">🎭 Storytelling</div><div class="ticker-item">✦</div>
+    <div class="ticker-item">🎓 Teaching</div><div class="ticker-item">✦</div>
+    <div class="ticker-item">🏃 Resume writing</div><div class="ticker-item">✦</div>
+    <div class="ticker-item">🎨 Hand drawing</div><div class="ticker-item">✦</div>
+    <div class="ticker-item">📝 Copywriting</div><div class="ticker-item">✦</div>
+    <div class="ticker-item">🎵 Music</div><div class="ticker-item">✦</div>
+    <div class="ticker-item">📖 Poetry</div><div class="ticker-item">✦</div>
+    <div class="ticker-item">📸 Photography</div><div class="ticker-item">✦</div>
+    <div class="ticker-item">🏺 Pottery</div><div class="ticker-item">✦</div>
+    <div class="ticker-item">✒️ Calligraphy</div><div class="ticker-item">✦</div>
+    <div class="ticker-item">💃 Dance</div><div class="ticker-item">✦</div>
+    <div class="ticker-item">🗿 Sculpture</div><div class="ticker-item">✦</div>
+    <div class="ticker-item">🎭 Storytelling</div><div class="ticker-item">✦</div>
+    <div class="ticker-item">🎓 Teaching</div><div class="ticker-item">✦</div>
+  </div>
+</div>
+
+<section class="manifesto" id="manifesto">
+  <p class="manifesto-quote">"AI can generate.<br><span class="yellow">Only humans can mean it."</span></p>
+  <p class="manifesto-sub">We are not anti-technology. We are pro-humanity.</p>
+</section>
+
+<section class="services" id="services">
+  <div class="sec-label">✦ What we champion</div>
+  <h2 class="sec-title">What humans do that AI never can</h2>
+  <div class="grid">
+    <div class="card"><div class="card-badge">Human</div><div class="card-icon">✍️</div><div class="card-name">Resume writing</div><div class="card-desc">Personal stories that land jobs — not templates.</div></div>
+    <div class="card"><div class="card-badge">Human</div><div class="card-icon">🎨</div><div class="card-name">Hand drawing</div><div class="card-desc">Raw illustration with soul and imperfection.</div></div>
+    <div class="card"><div class="card-badge">Human</div><div class="card-icon">📝</div><div class="card-name">Copywriting</div><div class="card-desc">Words with wit, culture and emotional punch.</div></div>
+    <div class="card"><div class="card-badge">Human</div><div class="card-icon">🎵</div><div class="card-name">Music</div><div class="card-desc">Melodies born from real heartbreak and joy.</div></div>
+    <div class="card"><div class="card-badge">Human</div><div class="card-icon">📖</div><div class="card-name">Poetry</div><div class="card-desc">Words carrying lived experience.</div></div>
+    <div class="card"><div class="card-badge">Human</div><div class="card-icon">📸</div><div class="card-name">Photography</div><div class="card-desc">The decisive moment seen by a human eye.</div></div>
+    <div class="card"><div class="card-badge">Human</div><div class="card-icon">🏺</div><div class="card-name">Pottery</div><div class="card-desc">Objects made by hand from earth — literally human.</div></div>
+    <div class="card"><div class="card-badge">Human</div><div class="card-icon">✒️</div><div class="card-name">Calligraphy</div><div class="card-desc">The dance of ink and hand on paper.</div></div>
+    <div class="card"><div class="card-badge">Human</div><div class="card-icon">🖌️</div><div class="card-name">Watercolor</div><div class="card-desc">Unpredictable, imperfect, impossibly beautiful.</div></div>
+    <div class="card"><div class="card-badge">Human</div><div class="card-icon">🎭</div><div class="card-name">Storytelling</div><div class="card-desc">Narratives shaped by real memory and emotion.</div></div>
+    <div class="card"><div class="card-badge">Human</div><div class="card-icon">💃</div><div class="card-name">Dance</div><div class="card-desc">Movement that speaks what words cannot say.</div></div>
+    <div class="card"><div class="card-badge">Human</div><div class="card-icon">🗿</div><div class="card-name">Sculpture</div><div class="card-desc">Vision carved from raw material by bare hands.</div></div>
+    <div class="card"><div class="card-badge">Human</div><div class="card-icon">🎤</div><div class="card-name">Voice acting</div><div class="card-desc">Emotion delivered through the human voice.</div></div>
+    <div class="card"><div class="card-badge">Human</div><div class="card-icon">🪡</div><div class="card-name">Textile design</div><div class="card-desc">Fabric woven with cultural identity and memory.</div></div>
+    <div class="card"><div class="card-badge">Human</div><div class="card-icon">🪵</div><div class="card-name">Woodworking</div><div class="card-desc">Craft that respects the grain of every tree.</div></div>
+    <div class="card"><div class="card-badge">Human</div><div class="card-icon">🎓</div><div class="card-name">Teaching</div><div class="card-desc">Wisdom passed from one human heart to another.</div></div>
+  </div>
+</section>
+
+<section class="why">
+  <div class="why-inner">
+    <div class="sec-label">✦ Why it matters</div>
+    <h2 class="sec-title">Why human creativity still matters</h2>
+    <div class="why-grid">
+      <div class="why-card"><div class="why-num">01</div><div class="why-title">Emotion</div><p class="why-text">Humans create from lived experience — heartbreak, joy, grief, wonder. AI has none of that. Every human creation carries the weight of a life actually lived.</p></div>
+      <div class="why-card"><div class="why-num">02</div><div class="why-title">Imperfection</div><p class="why-text">The wobble in a hand-drawn line. The crack in pottery glaze. The scratch in vinyl. That is not a flaw — that is where the soul lives.</p></div>
+      <div class="why-card"><div class="why-num">03</div><div class="why-title">Intent</div><p class="why-text">Every human creation carries a why. A reason. A story. A person who stayed up late because they cared. AI has no why. Humans always do.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="badge">
+  <div class="badge-wrap">
+    <div>
+      <div class="badge-circle-big" onclick="openModal()">
+        <div class="badge-inner-big">
+          <div class="badge-word-big">Human</div>
+          <div class="badge-run-big">🏃</div>
+          <div class="badge-word-big">Made</div>
+          <div class="badge-yr-big">Soul Over Code ✦ 2026</div>
+        </div>
+      </div>
+    </div>
+    <div class="badge-text-side">
+      <div class="sec-label">✦ Certification</div>
+      <h2>Get your Human Made badge</h2>
+      <p>A certification that proves your work was made by a human — not generated by AI. Join our community first, then wear your badge with pride on everything you create.</p>
+      <button class="dl-btn" onclick="openModal()">🏅 Download my badge</button>
+    </div>
+  </div>
+</section>
+
+<section class="join" id="join">
+  <h2>Join the revolution</h2>
+  <p>Join thousands of creators who believe that soul cannot be automated.</p>
+  <div class="join-form">
+    <input type="email" id="joinEmail" placeholder="your@email.com"/>
+    <button onclick="joinMovement()">Join Soul Over Code ✦</button>
+  </div>
+  <div class="success" id="successNote">Welcome! You are now part of the human creativity movement 🏃✦</div>
+</section>
+
+<footer>
+  <div class="foot-logo">Soul Over Code</div>
+  <div class="foot-text">Built by humans, for humans ✦ © 2026 Soul Over Code. Made with soul, not code.</div>
+</footer>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h3>Join first to get your badge!</h3>
+    <p>Become part of the Soul Over Code community — then download your Human Made certification badge for all your work.</p>
+    <input type="email" id="modalEmail" placeholder="your@email.com"/>
+    <button class="modal-btn" onclick="downloadBadge()">Join & Download Badge ✦</button>
+    <button class="modal-close" onclick="closeModal()">Maybe later</button>
+  </div>
+</div>
+
+<script>
+let count=0;
+function updateCount(){document.getElementById('heroCount').textContent=count;}
+function openModal(){document.getElementById('overlay').classList.add('show');}
+function closeModal(){document.getElementById('overlay').classList.remove('show');}
+function downloadBadge(){
+  const e=document.getElementById('modalEmail').value;
+  if(!e||!e.includes('@')){alert('Please enter a valid email!');return;}
+  count++;updateCount();closeModal();
+  const a=document.createElement('a');
+  a.href='data:text/plain;charset=utf-8,SOUL OVER CODE — HUMAN MADE BADGE\n\nOwner: '+e+'\nCertified: '+new Date().toLocaleDateString()+'\nThis certifies that the work bearing this badge was created entirely by a human being.\n\nsoulovercode.com\n"AI can generate. Only humans can mean it."';
+  a.download='HumanMade-Badge-SoulOverCode.txt';a.click();
+  alert('Welcome to Soul Over Code! Your badge has been downloaded. Wear it with pride!');
+}
+function joinMovement(){
+  const e=document.getElementById('joinEmail').value;
+  if(!e||!e.includes('@')){alert('Please enter a valid email!');return;}
+  count++;updateCount();
+  document.getElementById('joinEmail').value='';
+  document.getElementById('successNote').style.display='block';
+  setTimeout(()=>document.getElementById('successNote').style.display='none',5000);
+}
+document.getElementById('overlay').addEventListener('click',function(e){if(e.target===this)closeModal();});
+</script>
+</body>
+</html>
