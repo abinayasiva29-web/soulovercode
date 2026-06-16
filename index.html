@@ -484,25 +484,57 @@ footer{background:var(--brown);padding:2rem 3rem;display:flex;justify-content:sp
 
 <script>
 let count=0;
+const FORMSPREE='https://formspree.io/f/mykaozyl';
 function updateCount(){document.getElementById('heroCount').textContent=count;}
 function openModal(){document.getElementById('overlay').classList.add('show');}
 function closeModal(){document.getElementById('overlay').classList.remove('show');}
-function downloadBadge(){
+
+async function sendToFormspree(email, type){
+  const data=new FormData();
+  data.append('email', email);
+  data.append('type', type);
+  data.append('website', 'soulovercode.com');
+  data.append('date', new Date().toLocaleString());
+  try{
+    const r=await fetch(FORMSPREE,{method:'POST',body:data,headers:{'Accept':'application/json'}});
+    return r.ok;
+  }catch(e){return false;}
+}
+
+async function downloadBadge(){
   const e=document.getElementById('modalEmail').value;
   if(!e||!e.includes('@')){alert('Please enter a valid email!');return;}
-  count++;updateCount();closeModal();
-  const a=document.createElement('a');
-  a.href='data:text/plain;charset=utf-8,SOUL OVER CODE — HUMAN MADE BADGE\n\nOwner: '+e+'\nCertified: '+new Date().toLocaleDateString()+'\nThis certifies that the work bearing this badge was created entirely by a human being.\n\nsoulovercode.com\n"AI can generate. Only humans can mean it."';
-  a.download='HumanMade-Badge-SoulOverCode.txt';a.click();
-  alert('Welcome to Soul Over Code! Your badge has been downloaded. Wear it with pride!');
+  const btn=document.querySelector('.modal-btn');
+  btn.textContent='Sending...';
+  const ok=await sendToFormspree(e,'Badge Download');
+  btn.textContent='Join & Download Badge ✦';
+  if(ok){
+    count++;updateCount();closeModal();
+    const a=document.createElement('a');
+    a.href='data:text/plain;charset=utf-8,SOUL OVER CODE — HUMAN MADE BADGE\n\nOwner: '+e+'\nCertified: '+new Date().toLocaleDateString()+'\nThis certifies that the work bearing this badge was created entirely by a human being.\n\nsoulovercode.com\n"AI can generate. Only humans can mean it."';
+    a.download='HumanMade-Badge-SoulOverCode.txt';
+    a.click();
+    alert('Welcome to Soul Over Code! Your badge has been downloaded. Wear it with pride! 🏃');
+  } else {
+    alert('Something went wrong. Please try again!');
+  }
 }
-function joinMovement(){
+
+async function joinMovement(){
   const e=document.getElementById('joinEmail').value;
   if(!e||!e.includes('@')){alert('Please enter a valid email!');return;}
-  count++;updateCount();
-  document.getElementById('joinEmail').value='';
-  document.getElementById('successNote').style.display='block';
-  setTimeout(()=>document.getElementById('successNote').style.display='none',5000);
+  const btn=document.querySelector('.join-form button');
+  btn.textContent='Joining...';
+  const ok=await sendToFormspree(e,'Join Movement');
+  btn.textContent='Join Soul Over Code ✦';
+  if(ok){
+    count++;updateCount();
+    document.getElementById('joinEmail').value='';
+    document.getElementById('successNote').style.display='block';
+    setTimeout(()=>document.getElementById('successNote').style.display='none',5000);
+  } else {
+    alert('Something went wrong. Please try again!');
+  }
 }
 document.getElementById('overlay').addEventListener('click',function(e){if(e.target===this)closeModal();});
 </script>
