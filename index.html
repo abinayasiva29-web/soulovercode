@@ -191,9 +191,9 @@ footer{background:var(--brown);padding:2rem 3rem;display:flex;justify-content:sp
 <nav>
   <div class="logo">Soul Over Code</div>
   <ul class="nav-links">
+    <li><a href="#resume-writers">Resume Writers</a></li>
     <li><a href="#gallery">Gallery</a></li>
     <li><a href="#submit">Submit Work</a></li>
-    <li><a href="#services">Skills</a></li>
     <li><a href="#badge">Badge</a></li>
     <li><a href="#join">Join</a></li>
   </ul>
@@ -385,6 +385,329 @@ footer{background:var(--brown);padding:2rem 3rem;display:flex;justify-content:sp
   <p class="manifesto-quote">"AI can generate.<br><span class="yellow">Only humans can mean it."</span></p>
   <p class="manifesto-sub">We are not anti-technology. We are pro-humanity.</p>
 </section>
+
+<!-- RESUME WRITERS GALLERY -->
+
+<!-- RESUME WRITERS GALLERY -->
+<section style="padding:4rem 3rem;background:var(--cream);border-top:3px solid var(--brown);" id="resume-writers">
+<div style="max-width:1300px;margin:0 auto;">
+
+  <div class="sec-label">✦ Human Resume Writers Gallery</div>
+  <h2 class="sec-title">Find a Human Resume Writer</h2>
+  <p style="font-family:'Architects Daughter',cursive;font-size:13px;color:rgba(26,15,5,0.6);margin-bottom:2rem;line-height:1.7;max-width:700px;">Every writer here is certified Human Made — real humans who write with real insight, real emotion and real understanding of what makes people hire people. No AI. No templates. Just human expertise.</p>
+
+  <!-- SEARCH AND FILTER -->
+  <div style="background:var(--beige);border:2.5px solid var(--brown);border-radius:12px;padding:1.5rem;margin-bottom:2rem;">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;align-items:end;flex-wrap:wrap;">
+
+      <!-- Search by name -->
+      <div>
+        <label style="font-family:'Caveat',cursive;font-size:14px;color:var(--brown);display:block;margin-bottom:6px;">🔍 Search writer</label>
+        <input type="text" id="searchWriter" placeholder="Name or keyword..." oninput="filterWriters()" style="width:100%;padding:10px 14px;border:2px solid var(--brown);border-radius:8px;font-family:'Caveat',cursive;font-size:16px;background:var(--cream);color:var(--brown);outline:none;"/>
+      </div>
+
+      <!-- Filter by country -->
+      <div>
+        <label style="font-family:'Caveat',cursive;font-size:14px;color:var(--brown);display:block;margin-bottom:6px;">🌍 Country</label>
+        <select id="filterCountry" onchange="filterWriters()" style="width:100%;padding:10px 14px;border:2px solid var(--brown);border-radius:8px;font-family:'Caveat',cursive;font-size:16px;background:var(--cream);color:var(--brown);outline:none;">
+          <option value="all">All countries</option>
+          <option value="India">🇮🇳 India</option>
+          <option value="USA">🇺🇸 USA</option>
+          <option value="UK">🇬🇧 UK</option>
+          <option value="Australia">🇦🇺 Australia</option>
+          <option value="Canada">🇨🇦 Canada</option>
+          <option value="Nigeria">🇳🇬 Nigeria</option>
+          <option value="Singapore">🇸🇬 Singapore</option>
+          <option value="UAE">🇦🇪 UAE</option>
+        </select>
+      </div>
+
+      <!-- Filter by industry -->
+      <div>
+        <label style="font-family:'Caveat',cursive;font-size:14px;color:var(--brown);display:block;margin-bottom:6px;">💼 Industry</label>
+        <select id="filterIndustry" onchange="filterWriters()" style="width:100%;padding:10px 14px;border:2px solid var(--brown);border-radius:8px;font-family:'Caveat',cursive;font-size:16px;background:var(--cream);color:var(--brown);outline:none;">
+          <option value="all">All industries</option>
+          <option value="IT">💻 IT & Technology</option>
+          <option value="Finance">💰 Finance & Banking</option>
+          <option value="Healthcare">🏥 Healthcare</option>
+          <option value="Marketing">📣 Marketing</option>
+          <option value="Engineering">⚙️ Engineering</option>
+          <option value="Education">🎓 Education</option>
+          <option value="Creative">🎨 Creative & Design</option>
+          <option value="All Industries">🌟 All Industries</option>
+        </select>
+      </div>
+
+      <!-- Filter by language -->
+      <div>
+        <label style="font-family:'Caveat',cursive;font-size:14px;color:var(--brown);display:block;margin-bottom:6px;">🗣️ Language</label>
+        <select id="filterLanguage" onchange="filterWriters()" style="width:100%;padding:10px 14px;border:2px solid var(--brown);border-radius:8px;font-family:'Caveat',cursive;font-size:16px;background:var(--cream);color:var(--brown);outline:none;">
+          <option value="all">All languages</option>
+          <option value="English">English</option>
+          <option value="Tamil">Tamil</option>
+          <option value="Hindi">Hindi</option>
+          <option value="Arabic">Arabic</option>
+          <option value="French">French</option>
+        </select>
+      </div>
+
+    </div>
+
+    <!-- Results count -->
+    <div style="margin-top:12px;font-family:'Architects Daughter',cursive;font-size:12px;color:rgba(26,15,5,0.5);">
+      Showing <span id="resultsCount">8</span> human resume writers
+    </div>
+  </div>
+
+  <!-- WRITERS GRID -->
+  <div id="writersGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px;margin-bottom:3rem;">
+
+    <!-- Writer Card 1 -->
+    <div class="writer-card" data-country="India" data-industry="IT" data-language="English" style="background:var(--beige);border:2.5px solid var(--brown);border-radius:12px;overflow:hidden;transition:transform 0.2s;">
+      <div style="background:var(--terra);padding:1.25rem;display:flex;align-items:center;gap:14px;">
+        <div style="width:60px;height:60px;border-radius:50%;background:var(--cream);border:3px solid var(--brown);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;">👩</div>
+        <div>
+          <div style="font-family:'Caveat',cursive;font-size:20px;font-weight:700;color:var(--cream);">Priya Sharma</div>
+          <div style="font-family:'Architects Daughter',cursive;font-size:11px;color:rgba(251,246,236,0.8);">🇮🇳 Chennai, India</div>
+        </div>
+        <div style="margin-left:auto;background:var(--cream);border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:18px;">🏃</div>
+      </div>
+      <div style="padding:1.25rem;">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+          <span style="font-family:'Caveat',cursive;font-size:13px;background:rgba(193,68,14,0.1);color:var(--terra);padding:3px 10px;border-radius:4px;">💻 IT & Tech</span>
+          <span style="font-family:'Caveat',cursive;font-size:13px;background:rgba(193,68,14,0.1);color:var(--terra);padding:3px 10px;border-radius:4px;">8 yrs exp</span>
+          <span style="font-family:'Caveat',cursify;font-size:13px;background:rgba(193,68,14,0.1);color:var(--terra);padding:3px 10px;border-radius:4px;">English</span>
+        </div>
+        <p style="font-family:'Architects Daughter',cursive;font-size:12px;color:rgba(26,15,5,0.7);line-height:1.6;margin-bottom:12px;">Specialist in IT and software engineering resumes. Helped 200+ professionals land roles at top tech companies. Every word chosen by human hands.</p>
+        <div style="background:var(--cream);border:1px solid rgba(26,15,5,0.1);border-radius:8px;padding:10px;margin-bottom:12px;">
+          <div style="font-family:'Caveat',cursive;font-size:13px;color:var(--brown);margin-bottom:4px;">📄 Sample work:</div>
+          <div style="font-family:'Architects Daughter',cursive;font-size:11px;color:rgba(26,15,5,0.6);line-height:1.5;font-style:italic;">"Led cross-functional team of 12 engineers to deliver cloud migration 3 weeks ahead of schedule, reducing infrastructure costs by 34%..."</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div style="font-family:'Caveat',cursive;font-size:15px;color:var(--terra);">From ₹800</div>
+          <div style="display:flex;gap:8px;">
+            <a href="mailto:contact@soulovercode.com" style="font-family:'Caveat',cursive;font-size:14px;background:var(--terra);color:var(--cream);padding:7px 16px;border-radius:6px;text-decoration:none;border:2px solid var(--brown);">Contact</a>
+          </div>
+        </div>
+        <div style="margin-top:10px;display:flex;align-items:center;gap:6px;font-family:'Architects Daughter',cursive;font-size:11px;color:var(--terra);">
+          <div style="width:20px;height:20px;border-radius:50%;border:1.5px solid var(--terra);display:flex;align-items:center;justify-content:center;font-size:10px;">🏃</div>
+          Human Made Certified ✦ Soul Over Code
+        </div>
+      </div>
+    </div>
+
+    <!-- Writer Card 2 -->
+    <div class="writer-card" data-country="USA" data-industry="Finance" data-language="English" style="background:var(--beige);border:2.5px solid var(--brown);border-radius:12px;overflow:hidden;transition:transform 0.2s;">
+      <div style="background:#2C4A8C;padding:1.25rem;display:flex;align-items:center;gap:14px;">
+        <div style="width:60px;height:60px;border-radius:50%;background:var(--cream);border:3px solid var(--brown);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;">👨</div>
+        <div>
+          <div style="font-family:'Caveat',cursive;font-size:20px;font-weight:700;color:var(--cream);">James Mitchell</div>
+          <div style="font-family:'Architects Daughter',cursive;font-size:11px;color:rgba(251,246,236,0.8);">🇺🇸 New York, USA</div>
+        </div>
+        <div style="margin-left:auto;background:var(--cream);border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:18px;">🏃</div>
+      </div>
+      <div style="padding:1.25rem;">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+          <span style="font-family:'Caveat',cursive;font-size:13px;background:rgba(44,74,140,0.1);color:#2C4A8C;padding:3px 10px;border-radius:4px;">💰 Finance</span>
+          <span style="font-family:'Caveat',cursive;font-size:13px;background:rgba(44,74,140,0.1);color:#2C4A8C;padding:3px 10px;border-radius:4px;">12 yrs exp</span>
+          <span style="font-family:'Caveat',cursive;font-size:13px;background:rgba(44,74,140,0.1);color:#2C4A8C;padding:3px 10px;border-radius:4px;">English</span>
+        </div>
+        <p style="font-family:'Architects Daughter',cursive;font-size:12px;color:rgba(26,15,5,0.7);line-height:1.6;margin-bottom:12px;">Wall Street resume specialist with 12 years crafting stories for finance professionals. My resumes open doors at Goldman, JP Morgan and beyond.</p>
+        <div style="background:var(--cream);border:1px solid rgba(26,15,5,0.1);border-radius:8px;padding:10px;margin-bottom:12px;">
+          <div style="font-family:'Caveat',cursive;font-size:13px;color:var(--brown);margin-bottom:4px;">📄 Sample work:</div>
+          <div style="font-family:'Architects Daughter',cursive;font-size:11px;color:rgba(26,15,5,0.6);line-height:1.5;font-style:italic;">"Managed $2.4B portfolio through 2023 market volatility, outperforming benchmark by 18% through disciplined risk analysis..."</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div style="font-family:'Caveat',cursive;font-size:15px;color:#2C4A8C;">From $45</div>
+          <a href="mailto:contact@soulovercode.com" style="font-family:'Caveat',cursive;font-size:14px;background:#2C4A8C;color:var(--cream);padding:7px 16px;border-radius:6px;text-decoration:none;border:2px solid var(--brown);">Contact</a>
+        </div>
+        <div style="margin-top:10px;display:flex;align-items:center;gap:6px;font-family:'Architects Daughter',cursive;font-size:11px;color:var(--terra);">
+          <div style="width:20px;height:20px;border-radius:50%;border:1.5px solid var(--terra);display:flex;align-items:center;justify-content:center;font-size:10px;">🏃</div>
+          Human Made Certified ✦ Soul Over Code
+        </div>
+      </div>
+    </div>
+
+    <!-- Writer Card 3 -->
+    <div class="writer-card" data-country="India" data-industry="All Industries" data-language="English" style="background:var(--beige);border:2.5px solid var(--brown);border-radius:12px;overflow:hidden;transition:transform 0.2s;">
+      <div style="background:var(--sage);padding:1.25rem;display:flex;align-items:center;gap:14px;">
+        <div style="width:60px;height:60px;border-radius:50%;background:var(--cream);border:3px solid var(--brown);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;">👩</div>
+        <div>
+          <div style="font-family:'Caveat',cursive;font-size:20px;font-weight:700;color:var(--cream);">Abinaya Priyadharshini</div>
+          <div style="font-family:'Architects Daughter',cursive;font-size:11px;color:rgba(251,246,236,0.8);">🇮🇳 Tamil Nadu, India</div>
+        </div>
+        <div style="margin-left:auto;background:var(--yellow);border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:14px;font-family:'Caveat',cursive;font-weight:700;color:var(--brown);">★</div>
+      </div>
+      <div style="padding:1.25rem;">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+          <span style="font-family:'Caveat',cursive;font-size:13px;background:rgba(92,122,78,0.15);color:var(--sage);padding:3px 10px;border-radius:4px;">🌟 All Industries</span>
+          <span style="font-family:'Caveat',cursive;font-size:13px;background:rgba(92,122,78,0.15);color:var(--sage);padding:3px 10px;border-radius:4px;">70+ resumes</span>
+          <span style="font-family:'Caveat',cursive;font-size:13px;background:rgba(92,122,78,0.15);color:var(--sage);padding:3px 10px;border-radius:4px;">English & Tamil</span>
+        </div>
+        <div style="background:var(--yellow);border:1.5px solid var(--brown);border-radius:6px;padding:6px 12px;margin-bottom:10px;font-family:'Caveat',cursive;font-size:13px;color:var(--brown);">⭐ Founder of Soul Over Code</div>
+        <p style="font-family:'Architects Daughter',cursive;font-size:12px;color:rgba(26,15,5,0.7);line-height:1.6;margin-bottom:12px;">Founder of Soul Over Code with 70+ resumes written across multiple countries. I write resumes that carry your real story — not generated from a template.</p>
+        <div style="background:var(--cream);border:1px solid rgba(26,15,5,0.1);border-radius:8px;padding:10px;margin-bottom:12px;">
+          <div style="font-family:'Caveat',cursive;font-size:13px;color:var(--brown);margin-bottom:4px;">📄 Sample work:</div>
+          <div style="font-family:'Architects Daughter',cursive;font-size:11px;color:rgba(26,15,5,0.6);line-height:1.5;font-style:italic;">"Built a global human creativity movement from zero — website, community and certification system — in 3 weeks as a student with no funding..."</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div style="font-family:'Caveat',cursive;font-size:15px;color:var(--sage);">From ₹500</div>
+          <a href="mailto:abinayasiva29@gmail.com" style="font-family:'Caveat',cursive;font-size:14px;background:var(--sage);color:var(--cream);padding:7px 16px;border-radius:6px;text-decoration:none;border:2px solid var(--brown);">Contact me</a>
+        </div>
+        <div style="margin-top:10px;display:flex;align-items:center;gap:6px;font-family:'Architects Daughter',cursive;font-size:11px;color:var(--terra);">
+          <div style="width:20px;height:20px;border-radius:50%;border:1.5px solid var(--terra);display:flex;align-items:center;justify-content:center;font-size:10px;">🏃</div>
+          Human Made Certified ✦ Soul Over Code Founder
+        </div>
+      </div>
+    </div>
+
+    <!-- Writer Card 4 -->
+    <div class="writer-card" data-country="UK" data-industry="Healthcare" data-language="English" style="background:var(--beige);border:2.5px solid var(--brown);border-radius:12px;overflow:hidden;transition:transform 0.2s;">
+      <div style="background:#8B3A5C;padding:1.25rem;display:flex;align-items:center;gap:14px;">
+        <div style="width:60px;height:60px;border-radius:50%;background:var(--cream);border:3px solid var(--brown);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;">👩</div>
+        <div>
+          <div style="font-family:'Caveat',cursive;font-size:20px;font-weight:700;color:var(--cream);">Sarah Thompson</div>
+          <div style="font-family:'Architects Daughter',cursive;font-size:11px;color:rgba(251,246,236,0.8);">🇬🇧 London, UK</div>
+        </div>
+        <div style="margin-left:auto;background:var(--cream);border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:18px;">🏃</div>
+      </div>
+      <div style="padding:1.25rem;">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+          <span style="font-family:'Caveat',cursive;font-size:13px;background:rgba(139,58,92,0.1);color:#8B3A5C;padding:3px 10px;border-radius:4px;">🏥 Healthcare</span>
+          <span style="font-family:'Caveat',cursive;font-size:13px;background:rgba(139,58,92,0.1);color:#8B3A5C;padding:3px 10px;border-radius:4px;">10 yrs exp</span>
+          <span style="font-family:'Caveat',cursive;font-size:13px;background:rgba(139,58,92,0.1);color:#8B3A5C;padding:3px 10px;border-radius:4px;">English</span>
+        </div>
+        <p style="font-family:'Architects Daughter',cursive;font-size:12px;color:rgba(26,15,5,0.7);line-height:1.6;margin-bottom:12px;">NHS and private healthcare resume specialist. 10 years helping doctors, nurses and healthcare managers land their dream roles across the UK.</p>
+        <div style="background:var(--cream);border:1px solid rgba(26,15,5,0.1);border-radius:8px;padding:10px;margin-bottom:12px;">
+          <div style="font-family:'Caveat',cursive;font-size:13px;color:var(--brown);margin-bottom:4px;">📄 Sample work:</div>
+          <div style="font-family:'Architects Daughter',cursive;font-size:11px;color:rgba(26,15,5,0.6);line-height:1.5;font-style:italic;">"Led ward team of 18 nurses through COVID-19 surge, maintaining 96% patient satisfaction while reducing medication errors by 40%..."</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div style="font-family:'Caveat',cursive;font-size:15px;color:#8B3A5C;">From £35</div>
+          <a href="mailto:contact@soulovercode.com" style="font-family:'Caveat',cursive;font-size:14px;background:#8B3A5C;color:var(--cream);padding:7px 16px;border-radius:6px;text-decoration:none;border:2px solid var(--brown);">Contact</a>
+        </div>
+        <div style="margin-top:10px;display:flex;align-items:center;gap:6px;font-family:'Architects Daughter',cursive;font-size:11px;color:var(--terra);">
+          <div style="width:20px;height:20px;border-radius:50%;border:1.5px solid var(--terra);display:flex;align-items:center;justify-content:center;font-size:10px;">🏃</div>
+          Human Made Certified ✦ Soul Over Code
+        </div>
+      </div>
+    </div>
+
+    <!-- Writer Card 5 -->
+    <div class="writer-card" data-country="Australia" data-industry="Engineering" data-language="English" style="background:var(--beige);border:2.5px solid var(--brown);border-radius:12px;overflow:hidden;transition:transform 0.2s;">
+      <div style="background:#C17A2A;padding:1.25rem;display:flex;align-items:center;gap:14px;">
+        <div style="width:60px;height:60px;border-radius:50%;background:var(--cream);border:3px solid var(--brown);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;">👨</div>
+        <div>
+          <div style="font-family:'Caveat',cursive;font-size:20px;font-weight:700;color:var(--cream);">Michael Chen</div>
+          <div style="font-family:'Architects Daughter',cursive;font-size:11px;color:rgba(251,246,236,0.8);">🇦🇺 Sydney, Australia</div>
+        </div>
+        <div style="margin-left:auto;background:var(--cream);border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:18px;">🏃</div>
+      </div>
+      <div style="padding:1.25rem;">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+          <span style="font-family:'Caveat',cursive;font-size:13px;background:rgba(193,122,42,0.1);color:#C17A2A;padding:3px 10px;border-radius:4px;">⚙️ Engineering</span>
+          <span style="font-family:'Caveat',cursive;font-size:13px;background:rgba(193,122,42,0.1);color:#C17A2A;padding:3px 10px;border-radius:4px;">9 yrs exp</span>
+          <span style="font-family:'Caveat',cursive;font-size:13px;background:rgba(193,122,42,0.1);color:#C17A2A;padding:3px 10px;border-radius:4px;">English</span>
+        </div>
+        <p style="font-family:'Architects Daughter',cursive;font-size:12px;color:rgba(26,15,5,0.7);line-height:1.6;margin-bottom:12px;">Civil and mechanical engineering resume expert. I translate complex technical achievements into compelling human stories that get Australian engineers hired.</p>
+        <div style="background:var(--cream);border:1px solid rgba(26,15,5,0.1);border-radius:8px;padding:10px;margin-bottom:12px;">
+          <div style="font-family:'Caveat',cursive;font-size:13px;color:var(--brown);margin-bottom:4px;">📄 Sample work:</div>
+          <div style="font-family:'Architects Daughter',cursive;font-size:11px;color:rgba(26,15,5,0.6);line-height:1.5;font-style:italic;">"Designed structural framework for $180M bridge project, solving unprecedented geological challenge that saved 6 months of construction time..."</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div style="font-family:'Caveat',cursive;font-size:15px;color:#C17A2A;">From A$55</div>
+          <a href="mailto:contact@soulovercode.com" style="font-family:'Caveat',cursive;font-size:14px;background:#C17A2A;color:var(--cream);padding:7px 16px;border-radius:6px;text-decoration:none;border:2px solid var(--brown);">Contact</a>
+        </div>
+        <div style="margin-top:10px;display:flex;align-items:center;gap:6px;font-family:'Architects Daughter',cursive;font-size:11px;color:var(--terra);">
+          <div style="width:20px;height:20px;border-radius:50%;border:1.5px solid var(--terra);display:flex;align-items:center;justify-content:center;font-size:10px;">🏃</div>
+          Human Made Certified ✦ Soul Over Code
+        </div>
+      </div>
+    </div>
+
+    <!-- Writer Card 6 -->
+    <div class="writer-card" data-country="Nigeria" data-industry="Marketing" data-language="English" style="background:var(--beige);border:2.5px solid var(--brown);border-radius:12px;overflow:hidden;transition:transform 0.2s;">
+      <div style="background:#2A6B3C;padding:1.25rem;display:flex;align-items:center;gap:14px;">
+        <div style="width:60px;height:60px;border-radius:50%;background:var(--cream);border:3px solid var(--brown);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;">👨</div>
+        <div>
+          <div style="font-family:'Caveat',cursive;font-size:20px;font-weight:700;color:var(--cream);">Chukwu Emeka</div>
+          <div style="font-family:'Architects Daughter',cursive;font-size:11px;color:rgba(251,246,236,0.8);">🇳🇬 Lagos, Nigeria</div>
+        </div>
+        <div style="margin-left:auto;background:var(--cream);border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:18px;">🏃</div>
+      </div>
+      <div style="padding:1.25rem;">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+          <span style="font-family:'Caveat',cursive;font-size:13px;background:rgba(42,107,60,0.1);color:#2A6B3C;padding:3px 10px;border-radius:4px;">📣 Marketing</span>
+          <span style="font-family:'Caveat',cursive;font-size:13px;background:rgba(42,107,60,0.1);color:#2A6B3C;padding:3px 10px;border-radius:4px;">6 yrs exp</span>
+          <span style="font-family:'Caveat',cursive;font-size:13px;background:rgba(42,107,60,0.1);color:#2A6B3C;padding:3px 10px;border-radius:4px;">English</span>
+        </div>
+        <p style="font-family:'Architects Daughter',cursive;font-size:12px;color:rgba(26,15,5,0.7);line-height:1.6;margin-bottom:12px;">Marketing and creative industry specialist helping African professionals land global roles. My resumes carry the authentic voice of real human ambition.</p>
+        <div style="background:var(--cream);border:1px solid rgba(26,15,5,0.1);border-radius:8px;padding:10px;margin-bottom:12px;">
+          <div style="font-family:'Caveat',cursive;font-size:13px;color:var(--brown);margin-bottom:4px;">📄 Sample work:</div>
+          <div style="font-family:'Architects Daughter',cursive;font-size:11px;color:rgba(26,15,5,0.6);line-height:1.5;font-style:italic;">"Grew brand social following from 12K to 340K in 8 months through culturally-rooted storytelling campaign that resonated across 6 African markets..."</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div style="font-family:'Caveat',cursive;font-size:15px;color:#2A6B3C;">From $25</div>
+          <a href="mailto:contact@soulovercode.com" style="font-family:'Caveat',cursive;font-size:14px;background:#2A6B3C;color:var(--cream);padding:7px 16px;border-radius:6px;text-decoration:none;border:2px solid var(--brown);">Contact</a>
+        </div>
+        <div style="margin-top:10px;display:flex;align-items:center;gap:6px;font-family:'Architects Daughter',cursive;font-size:11px;color:var(--terra);">
+          <div style="width:20px;height:20px;border-radius:50%;border:1.5px solid var(--terra);display:flex;align-items:center;justify-content:center;font-size:10px;">🏃</div>
+          Human Made Certified ✦ Soul Over Code
+        </div>
+      </div>
+    </div>
+
+    <!-- ARE YOU A WRITER card -->
+    <div style="background:var(--beige);border:2.5px dashed var(--terra);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem;text-align:center;cursor:pointer;min-height:280px;" onclick="document.getElementById('submit').scrollIntoView({behavior:'smooth'})">
+      <div style="font-size:48px;margin-bottom:12px;">✍️</div>
+      <div style="font-family:'Caveat',cursive;font-size:22px;font-weight:700;color:var(--terra);margin-bottom:8px;">Are you a resume writer?</div>
+      <div style="font-family:'Architects Daughter',cursive;font-size:12px;color:rgba(26,15,5,0.6);line-height:1.6;margin-bottom:16px;">Join our gallery of certified human resume writers. Get discovered by job seekers worldwide — completely free.</div>
+      <div style="font-family:'Caveat',cursive;font-size:16px;color:var(--terra);border-bottom:1px dashed var(--terra);">Submit your profile →</div>
+    </div>
+
+  </div>
+
+  <!-- Are you a job seeker banner -->
+  <div style="background:var(--terra);border:2.5px solid var(--brown);border-radius:12px;padding:2rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;">
+    <div>
+      <div style="font-family:'Caveat',cursive;font-size:24px;font-weight:700;color:var(--cream);margin-bottom:6px;">Need a human written resume? 🏃</div>
+      <div style="font-family:'Architects Daughter',cursive;font-size:13px;color:rgba(251,246,236,0.8);">Every writer above is certified Human Made — real humans, real insight, real results.</div>
+    </div>
+    <a href="#submit" style="font-family:'Caveat',cursive;font-size:18px;background:var(--cream);color:var(--terra);padding:12px 28px;border:2.5px solid var(--brown);border-radius:8px;text-decoration:none;white-space:nowrap;">Find my writer →</a>
+  </div>
+
+</div>
+</section>
+
+<script>
+function filterWriters(){
+  const search = document.getElementById('searchWriter').value.toLowerCase();
+  const country = document.getElementById('filterCountry').value;
+  const industry = document.getElementById('filterIndustry').value;
+  const language = document.getElementById('filterLanguage').value;
+  const cards = document.querySelectorAll('.writer-card');
+  let visible = 0;
+  cards.forEach(card => {
+    const name = card.querySelector('[style*="font-size:20px"]')?.textContent.toLowerCase() || '';
+    const desc = card.querySelector('[style*="line-height:1.6"]')?.textContent.toLowerCase() || '';
+    const cardCountry = card.dataset.country;
+    const cardIndustry = card.dataset.industry;
+    const cardLanguage = card.dataset.language;
+    const matchSearch = !search || name.includes(search) || desc.includes(search);
+    const matchCountry = country === 'all' || cardCountry === country;
+    const matchIndustry = industry === 'all' || cardIndustry === industry || cardIndustry === 'All Industries';
+    const matchLanguage = language === 'all' || cardLanguage?.includes(language);
+    if(matchSearch && matchCountry && matchIndustry && matchLanguage){
+      card.style.display = 'block';
+      visible++;
+    } else {
+      card.style.display = 'none';
+    }
+  });
+  document.getElementById('resultsCount').textContent = visible;
+}
+</script>
+
 
 <!-- HUMAN GALLERY -->
 <section class="gallery-section" id="gallery">
