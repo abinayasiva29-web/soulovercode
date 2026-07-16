@@ -185,6 +185,109 @@ footer{background:var(--brown);padding:2rem 3rem;display:flex;justify-content:sp
   footer{padding:1.5rem;flex-direction:column;text-align:center;}
 }
 </style>
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, getDocs, onSnapshot, doc, setDoc, getDoc, increment, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBaJF1NUzeMdukAEO-Z3MzOkmBpdg26QOs",
+    authDomain: "soulovercode.firebaseapp.com",
+    projectId: "soulovercode",
+    storageBucket: "soulovercode.firebasestorage.app",
+    messagingSenderId: "444742946957",
+    appId: "1:444742946957:web:cd4c309ad2ec00d3fb52c4",
+    measurementId: "G-WHTHWC27K7"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // ── Real-time community counter ──
+  async function initCounter(){
+    const ref = doc(db, 'community', 'counter');
+    const snap = await getDoc(ref);
+    if(!snap.exists()) await setDoc(ref, {count: 0});
+    onSnapshot(ref, snap => {
+      const c = snap.data()?.count || 0;
+      document.querySelectorAll('#heroCount, #counterDisplay').forEach(el => el.textContent = c);
+    });
+  }
+  initCounter();
+
+  // ── Join Movement ──
+  window.joinMovement = async function(){
+    const email = document.getElementById('joinEmail').value.trim();
+    if(!email || !email.includes('@')){ alert('Please enter a valid email!'); return; }
+    const btn = document.querySelector('.join-form button');
+    btn.textContent = 'Joining...';
+    btn.disabled = true;
+    try {
+      // Save to Firestore members collection
+      await addDoc(collection(db, 'members'), {
+        email: email,
+        type: 'Join Movement',
+        joinedAt: serverTimestamp(),
+        website: 'soulovercode.com'
+      });
+      // Increment counter
+      await updateDoc(doc(db, 'community', 'counter'), { count: increment(1) });
+      // Also send to Formspree
+      const fd = new FormData();
+      fd.append('email', email);
+      fd.append('type', 'Join Movement');
+      fd.append('date', new Date().toLocaleString());
+      await fetch('https://formspree.io/f/mykaozyl', {method:'POST', body:fd, headers:{'Accept':'application/json'}});
+      document.getElementById('joinEmail').value = '';
+      document.getElementById('successNote').style.display = 'block';
+      setTimeout(() => document.getElementById('successNote').style.display = 'none', 5000);
+    } catch(e){
+      alert('Something went wrong. Please try again!');
+    }
+    btn.textContent = 'Join Soul Over Code ✦';
+    btn.disabled = false;
+  }
+
+  // ── Download Badge ──
+  window.openModal = function(){ document.getElementById('overlay').classList.add('show'); }
+  window.closeModal = function(){ document.getElementById('overlay').classList.remove('show'); }
+
+  window.downloadBadge = async function(){
+    const email = document.getElementById('modalEmail').value.trim();
+    if(!email || !email.includes('@')){ alert('Please enter a valid email!'); return; }
+    const btn = document.querySelector('.modal-btn');
+    btn.textContent = 'Sending...';
+    btn.disabled = true;
+    try {
+      await addDoc(collection(db, 'members'), {
+        email: email,
+        type: 'Badge Download',
+        joinedAt: serverTimestamp(),
+        website: 'soulovercode.com'
+      });
+      await updateDoc(doc(db, 'community', 'counter'), { count: increment(1) });
+      const fd = new FormData();
+      fd.append('email', email);
+      fd.append('type', 'Badge Download');
+      fd.append('date', new Date().toLocaleString());
+      await fetch('https://formspree.io/f/mykaozyl', {method:'POST', body:fd, headers:{'Accept':'application/json'}});
+      closeModal();
+      const a = document.createElement('a');
+      a.href = 'data:text/plain;charset=utf-8,SOUL OVER CODE — HUMAN MADE BADGE\n\nOwner: '+email+'\nCertified: '+new Date().toLocaleDateString()+'\nThis certifies that the work bearing this badge was created entirely by a human being.\n\nsoulovercode.com\n"AI can generate. Only humans can mean it."';
+      a.download = 'HumanMade-Badge-SoulOverCode.txt';
+      a.click();
+      alert('Welcome to Soul Over Code! Your badge has been downloaded!');
+    } catch(e){
+      alert('Something went wrong. Please try again!');
+    }
+    btn.textContent = 'Join & Download Badge ✦';
+    btn.disabled = false;
+  }
+
+  document.getElementById('overlay').addEventListener('click', function(e){
+    if(e.target === this) closeModal();
+  });
+</script>
 </head>
 <body>
 
@@ -970,12 +1073,6 @@ function filterWriters(){
 </div>
 
 <script>
-let count=0;
-const FORMSPREE='https://formspree.io/f/mykaozyl';
-function updateCount(){document.getElementById('heroCount').textContent=count;}
-function openModal(){document.getElementById('overlay').classList.add('show');}
-function closeModal(){document.getElementById('overlay').classList.remove('show');}
-
 function filterGallery(cat,btn){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   btn.classList.add('active');
@@ -983,44 +1080,25 @@ function filterGallery(cat,btn){
     c.style.display=(cat==='all'||c.dataset.cat===cat)?'block':'none';
   });
 }
-
-async function sendToFormspree(email,type){
-  const data=new FormData();
-  data.append('email',email);data.append('type',type);
-  data.append('website','soulovercode.com');data.append('date',new Date().toLocaleString());
-  try{const r=await fetch(FORMSPREE,{method:'POST',body:data,headers:{'Accept':'application/json'}});return r.ok;}
-  catch(e){return false;}
+function filterWriters(){
+  const search=document.getElementById('searchWriter').value.toLowerCase();
+  const country=document.getElementById('filterCountry').value;
+  const industry=document.getElementById('filterIndustry').value;
+  const language=document.getElementById('filterLanguage').value;
+  const cards=document.querySelectorAll('.writer-card');
+  let visible=0;
+  cards.forEach(card=>{
+    const name=card.querySelector('[style*="font-size:20px"]')?.textContent.toLowerCase()||'';
+    const desc=card.querySelector('p')?.textContent.toLowerCase()||'';
+    const matchSearch=!search||name.includes(search)||desc.includes(search);
+    const matchCountry=country==='all'||card.dataset.country===country;
+    const matchIndustry=industry==='all'||card.dataset.industry===industry||card.dataset.industry==='All Industries';
+    const matchLanguage=language==='all'||card.dataset.language?.includes(language);
+    if(matchSearch&&matchCountry&&matchIndustry&&matchLanguage){card.style.display='block';visible++;}
+    else{card.style.display='none';}
+  });
+  document.getElementById('resultsCount').textContent=visible;
 }
-
-async function downloadBadge(){
-  const e=document.getElementById('modalEmail').value;
-  if(!e||!e.includes('@')){alert('Please enter a valid email!');return;}
-  const btn=document.querySelector('.modal-btn');btn.textContent='Sending...';
-  const ok=await sendToFormspree(e,'Badge Download');
-  btn.textContent='Join & Download Badge ✦';
-  if(ok){
-    count++;updateCount();closeModal();
-    const a=document.createElement('a');
-    a.href='data:text/plain;charset=utf-8,SOUL OVER CODE — HUMAN MADE BADGE\n\nOwner: '+e+'\nCertified: '+new Date().toLocaleDateString()+'\nThis certifies that the work bearing this badge was created entirely by a human being.\n\nsoulovercode.com\n"AI can generate. Only humans can mean it."';
-    a.download='HumanMade-Badge-SoulOverCode.txt';a.click();
-    alert('Welcome to Soul Over Code! Your badge has been downloaded!');
-  }else{alert('Something went wrong. Please try again!');}
-}
-
-async function joinMovement(){
-  const e=document.getElementById('joinEmail').value;
-  if(!e||!e.includes('@')){alert('Please enter a valid email!');return;}
-  const btn=document.querySelector('.join-form button');btn.textContent='Joining...';
-  const ok=await sendToFormspree(e,'Join Movement');
-  btn.textContent='Join Soul Over Code ✦';
-  if(ok){
-    count++;updateCount();
-    document.getElementById('joinEmail').value='';
-    document.getElementById('successNote').style.display='block';
-    setTimeout(()=>document.getElementById('successNote').style.display='none',5000);
-  }else{alert('Something went wrong. Please try again!');}
-}
-document.getElementById('overlay').addEventListener('click',function(e){if(e.target===this)closeModal();});
 </script>
 </body>
 </html>
