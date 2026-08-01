@@ -15,11 +15,57 @@
 <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import{getFirestore,collection,addDoc,onSnapshot,doc,setDoc,getDoc,increment,updateDoc,serverTimestamp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import{getFirestore,collection,addDoc,onSnapshot,doc,setDoc,getDoc,increment,updateDoc,serverTimestamp,query,where,orderBy}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 const app=initializeApp({apiKey:"AIzaSyBaJF1NUzeMdukAEO-Z3MzOkmBpdg26QOs",authDomain:"soulovercode.firebaseapp.com",projectId:"soulovercode",storageBucket:"soulovercode.firebasestorage.app",messagingSenderId:"444742946957",appId:"1:444742946957:web:cd4c309ad2ec00d3fb52c4"});
 const db=getFirestore(app);
 async function initCounter(){const ref=doc(db,'community','counter');const snap=await getDoc(ref);if(!snap.exists())await setDoc(ref,{count:0});onSnapshot(ref,s=>{const c=s.data()?.count||0;document.querySelectorAll('.js-count').forEach(el=>el.textContent=c);});}
 initCounter();
+
+// ═══ LIVE CREATORS (real submissions, approved only) ═══
+const CRAFT_ICON={Writing:'✍️',Art:'🎨',Poetry:'📖',Photography:'📸',Music:'🎵',Crafts:'🏺'};
+let liveCreators=[];
+function renderLiveGallery(){
+  const wrap=document.getElementById('liveGalleryItems');
+  if(!wrap)return;
+  wrap.innerHTML=liveCreators.map((c,i)=>`
+    <div class="gal-item" data-cat="${(c.craft||'').toLowerCase()}">
+      <div class="gal-num">— LIVE ${String(i+1).padStart(3,'0')} —</div>
+      <span class="gal-icon">${CRAFT_ICON[c.craft]||'✦'}</span>
+      <div class="gal-cat">${c.craft||''}</div>
+      <div class="gal-name">${c.title||c.craft||'Human Work'}</div>
+      <div class="gal-creator">${c.name||'Anonymous'} · ${c.city||''}${c.city&&c.country?', ':''}${c.country||''}</div>
+      <div class="gal-desc">${c.description||''}</div>
+      <div class="gal-cert">🏃 Human Made Certified</div>
+    </div>`).join('');
+}
+function subscribeLiveCreators(){
+  const q=query(collection(db,'creators'),where('status','==','approved'),orderBy('approvedAt','desc'));
+  onSnapshot(q,snap=>{
+    liveCreators=snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderLiveGallery();
+    renderMapMarkers(liveCreators);
+  },err=>console.warn('creators feed error',err));
+}
+window.submitCreatorWork=async function(){
+  const name=document.getElementById('subName').value.trim();
+  const email=document.getElementById('subEmail').value.trim();
+  const city=document.getElementById('subCity').value.trim();
+  const country=document.getElementById('subCountry').value.trim();
+  const craft=document.getElementById('subCraft').value;
+  const title=document.getElementById('subTitle').value.trim();
+  const description=document.getElementById('subDesc').value.trim();
+  const link=document.getElementById('subLink').value.trim();
+  if(!name||!city||!country||!craft||!description){showToast('Please fill in name, city, country, craft and a short description!');return;}
+  const btn=document.getElementById('subSubmitBtn');btn.textContent='Submitting...';btn.disabled=true;
+  try{
+    await addDoc(collection(db,'creators'),{name,email,city,country,craft,title,description,link,status:'pending',submittedAt:serverTimestamp()});
+    ['subName','subEmail','subCity','subCountry','subTitle','subDesc','subLink'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('subCraft').value='';
+    showToast('Submitted! We\'ll review it and add you to the gallery and map soon. 🏃✦');
+  }catch(e){showToast('Something went wrong. Please try again!');}
+  btn.textContent='Submit your work — it\'s free';btn.disabled=false;
+};
+subscribeLiveCreators();
 window.openModal=()=>document.getElementById('overlay').classList.add('show');
 window.closeModal=()=>document.getElementById('overlay').classList.remove('show');
 window.joinMovement=async function(){
@@ -274,6 +320,7 @@ body::before{
 .gal-add:hover{background:var(--aged2);}
 .gal-add-plus{font-family:'Playfair Display',serif;font-size:2rem;color:var(--ink-light);margin-bottom:8px;}
 .gal-add-text{font-family:'Special Elite',cursive;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--ink-light);}
+#liveGalleryItems{display:contents;}
 
 /* ═══════════════════════════════════ WORLD MAP */
 .map-bg{background:var(--aged);}
@@ -349,6 +396,14 @@ body::before{
 .sub-step-d{font-family:'IM Fell English',serif;font-size:13px;color:rgba(242,232,213,0.4);line-height:1.5;}
 .submit-btn{font-family:'Special Elite',cursive;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--ink);background:var(--aged);padding:14px 32px;text-decoration:none;display:inline-block;border:2px solid var(--aged);transition:all 0.2s;box-shadow:4px 4px 0 var(--red-ink);}
 .submit-btn:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 var(--red-ink);}
+.sub-form{max-width:520px;margin:1.75rem auto 0;text-align:left;border:2px solid var(--aged3);box-shadow:4px 4px 0 rgba(242,232,213,0.15);padding:1.5rem;background:rgba(242,232,213,0.03);}
+.sub-form-row{display:flex;gap:10px;margin-bottom:10px;}
+.sub-form-row .sub-input,.sub-form-row select{flex:1;}
+.sub-input,.sub-form select,.sub-form textarea{width:100%;padding:11px 12px;border:none;font-family:'IM Fell English',serif;font-size:14px;color:var(--ink);background:var(--aged);outline:none;box-sizing:border-box;margin-bottom:10px;}
+.sub-form textarea{resize:vertical;min-height:70px;font-family:'Crimson Text',serif;}
+.sub-form-submit{width:100%;font-family:'Special Elite',cursive;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--aged);background:var(--red-ink);padding:14px;border:none;cursor:pointer;transition:opacity 0.2s;}
+.sub-form-submit:hover{opacity:0.85;}
+.sub-form-note{font-family:'Special Elite',cursive;font-size:9px;letter-spacing:1px;color:rgba(242,232,213,0.45);text-align:center;margin-top:10px;}
 
 /* ═══════════════════════════════════ DISCORD */
 .discord-bg{background:var(--aged2);border-top:4px double var(--ink);}
@@ -695,6 +750,7 @@ footer{background:var(--ink2);border-top:4px double var(--red-ink);padding:2rem 
     <button class="wb-btn" onclick="filterGallery('poetry',this)" style="border:none;border-radius:0;">Poetry</button>
   </div>
   <div class="gallery-grid" id="galleryGrid">
+    <div id="liveGalleryItems"></div>
     <div class="gal-item" data-cat="writing"><div class="gal-num">— 001 —</div><span class="gal-icon">✍️</span><div class="gal-cat">Writing</div><div class="gal-name">Human Resume Writer</div><div class="gal-creator">Priya S. · Chennai, India 🇮🇳</div><div class="gal-desc">Personal stories that land jobs — not templates. Every word chosen with intention and soul that no algorithm can replicate.</div><div class="gal-cert">🏃 Human Made Certified</div></div>
     <div class="gal-item" data-cat="art"><div class="gal-num">— 002 —</div><span class="gal-icon">🎨</span><div class="gal-cat">Art</div><div class="gal-name">Hand Drawn Portraits</div><div class="gal-creator">Arjun M. · Mumbai, India 🇮🇳</div><div class="gal-desc">Pencil portraits with raw emotion. Every wobble in the line is where the soul lives — beautiful precisely because it is imperfect.</div><div class="gal-cert">🏃 Human Made Certified</div></div>
     <div class="gal-item" data-cat="poetry"><div class="gal-num">— 003 —</div><span class="gal-icon">📖</span><div class="gal-cat">Poetry</div><div class="gal-name">Tamil & English Poetry</div><div class="gal-creator">Kavya R. · Coimbatore, India 🇮🇳</div><div class="gal-desc">Words born from real heartbreak and real joy — what AI cannot generate because it cannot feel what these words were written from.</div><div class="gal-cert">🏃 Human Made Certified</div></div>
@@ -836,7 +892,25 @@ footer{background:var(--ink2);border-top:4px double var(--red-ink);padding:2rem 
       <div class="sub-step"><div class="sub-step-n">Step 02</div><div class="sub-step-t">Get certified</div><div class="sub-step-d">We review and certify your work with the Human Made badge — proving it was human-created</div></div>
       <div class="sub-step"><div class="sub-step-n">Step 03</div><div class="sub-step-t">Go worldwide</div><div class="sub-step-d">Your work appears in our gallery for the entire world to discover and contact you</div></div>
     </div>
-    <a href="https://forms.gle/LMk2oEXpP4xfbJ4Q9" target="_blank" class="submit-btn">Submit your work — it's free →</a>
+    <a href="https://forms.gle/LMk2oEXpP4xfbJ4Q9" target="_blank" class="submit-btn" style="display:none;">Submit your work — it's free →</a>
+    <div class="sub-form">
+      <input type="text" id="subName" class="sub-input" placeholder="Your name*"/>
+      <input type="email" id="subEmail" class="sub-input" placeholder="Email (private, for contact only)"/>
+      <div class="sub-form-row">
+        <input type="text" id="subCity" class="sub-input" placeholder="City*"/>
+        <input type="text" id="subCountry" class="sub-input" placeholder="Country*"/>
+      </div>
+      <select id="subCraft" class="sub-input">
+        <option value="">Craft — choose one*</option>
+        <option>Writing</option><option>Art</option><option>Poetry</option>
+        <option>Photography</option><option>Music</option><option>Crafts</option>
+      </select>
+      <input type="text" id="subTitle" class="sub-input" placeholder="Title of your work"/>
+      <textarea id="subDesc" class="sub-input" placeholder="Tell us about it — what makes it yours*"></textarea>
+      <input type="url" id="subLink" class="sub-input" placeholder="Link to your work (optional)"/>
+      <button class="sub-form-submit" id="subSubmitBtn" onclick="submitCreatorWork()">Submit your work — it's free</button>
+      <div class="sub-form-note">Reviewed by hand before it appears in the Gallery and World Map. Usually within a few days.</div>
+    </div>
   </div>
 </section>
 
@@ -1067,18 +1141,7 @@ if(canvas){
   renderMemories();
 }
 
-// WORLD CREATOR MAP
-// Add a creator by adding one line here — city/country/craft/name — plus lat/lng.
-const WORLD_MAP_CREATORS=[
-  {name:'Priya S.',city:'Chennai',country:'India',craft:'Writing',lat:13.0827,lng:80.2707},
-  {name:'Arjun M.',city:'Mumbai',country:'India',craft:'Art',lat:19.0760,lng:72.8777},
-  {name:'Kavya R.',city:'Coimbatore',country:'India',craft:'Poetry',lat:11.0168,lng:76.9558},
-  {name:'Ravi K.',city:'Delhi',country:'India',craft:'Photography',lat:28.7041,lng:77.1025},
-  {name:'Meera T.',city:'Bangalore',country:'India',craft:'Music',lat:12.9716,lng:77.5946},
-  {name:'Leila A.',city:'Istanbul',country:'Turkey',craft:'Crafts',lat:41.0082,lng:28.9784},
-  {name:'James O.',city:'Lagos',country:'Nigeria',craft:'Writing',lat:6.5244,lng:3.3792},
-  {name:'Yuki N.',city:'Tokyo',country:'Japan',craft:'Art',lat:35.6762,lng:139.6503}
-];
+// WORLD CREATOR MAP — driven by live approved submissions (see subscribeLiveCreators above)
 const WORLD_MAP_STYLE=[
   {elementType:'geometry',stylers:[{color:'#E8D9BE'}]},
   {elementType:'labels.text.stroke',stylers:[{color:'#F2E8D5'}]},
@@ -1092,33 +1155,43 @@ const WORLD_MAP_STYLE=[
   {featureType:'water',elementType:'geometry',stylers:[{color:'#c9d6cd'}]},
   {featureType:'water',elementType:'labels.text.fill',stylers:[{color:'#4f6b63'}]}
 ];
-function fillMapStats(){
-  document.getElementById('mapStatCount').textContent=WORLD_MAP_CREATORS.length;
-  document.getElementById('mapStatCountries').textContent=new Set(WORLD_MAP_CREATORS.map(c=>c.country)).size;
-  document.getElementById('mapStatCrafts').textContent=new Set(WORLD_MAP_CREATORS.map(c=>c.craft)).size;
+let worldMap=null,worldMapInfoWindow=null,worldMapMarkers=[];
+function fillMapStats(list){
+  document.getElementById('mapStatCount').textContent=list.length;
+  document.getElementById('mapStatCountries').textContent=new Set(list.map(c=>c.country)).size;
+  document.getElementById('mapStatCrafts').textContent=new Set(list.map(c=>c.craft)).size;
   const legend=document.getElementById('mapLegend');
   if(legend){
-    [...new Set(WORLD_MAP_CREATORS.map(c=>c.craft))].forEach(craft=>{
+    legend.innerHTML='';
+    [...new Set(list.map(c=>c.craft))].forEach(craft=>{
       const chip=document.createElement('span');chip.className='map-chip';chip.textContent=craft;legend.appendChild(chip);
     });
   }
 }
-window.initWorldMap=function(){
-  fillMapStats();
-  const el=document.getElementById('worldMap');
-  if(!el||!window.google)return;
-  const map=new google.maps.Map(el,{zoom:2,center:{lat:15,lng:40},styles:WORLD_MAP_STYLE,disableDefaultUI:true,zoomControl:true,minZoom:2});
-  const infoWindow=new google.maps.InfoWindow();
-  WORLD_MAP_CREATORS.forEach(c=>{
+function renderMapMarkers(list){
+  if(!worldMap)return; // map script not ready yet; will render once it is (see initWorldMap)
+  worldMapMarkers.forEach(m=>m.setMap(null));
+  worldMapMarkers=[];
+  fillMapStats(list);
+  list.forEach(c=>{
+    if(typeof c.lat!=='number'||typeof c.lng!=='number')return; // not geocoded yet
     const marker=new google.maps.Marker({
-      position:{lat:c.lat,lng:c.lng},map,title:c.name,
+      position:{lat:c.lat,lng:c.lng},map:worldMap,title:c.name,
       icon:{path:google.maps.SymbolPath.CIRCLE,scale:7,fillColor:'#8B1A10',fillOpacity:1,strokeColor:'#F2E8D5',strokeWeight:2}
     });
     marker.addListener('click',()=>{
-      infoWindow.setContent('<div class="map-iw"><div class="map-iw-name">'+c.name+'</div><div class="map-iw-cat">'+c.craft+'</div><div class="map-iw-loc">'+c.city+', '+c.country+'</div></div>');
-      infoWindow.open(map,marker);
+      worldMapInfoWindow.setContent('<div class="map-iw"><div class="map-iw-name">'+c.name+'</div><div class="map-iw-cat">'+c.craft+'</div><div class="map-iw-loc">'+c.city+', '+c.country+'</div></div>');
+      worldMapInfoWindow.open(worldMap,marker);
     });
+    worldMapMarkers.push(marker);
   });
+}
+window.initWorldMap=function(){
+  const el=document.getElementById('worldMap');
+  if(!el||!window.google)return;
+  worldMap=new google.maps.Map(el,{zoom:2,center:{lat:15,lng:40},styles:WORLD_MAP_STYLE,disableDefaultUI:true,zoomControl:true,minZoom:2});
+  worldMapInfoWindow=new google.maps.InfoWindow();
+  renderMapMarkers(liveCreators); // render whatever's already loaded from Firestore
 };
 
 // SCROLL ANIMATIONS
