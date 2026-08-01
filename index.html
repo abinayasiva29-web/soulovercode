@@ -23,11 +23,11 @@ initCounter();
 
 // ═══ LIVE CREATORS (real submissions, approved only) ═══
 const CRAFT_ICON={Writing:'✍️',Art:'🎨',Poetry:'📖',Photography:'📸',Music:'🎵',Crafts:'🏺'};
-let liveCreators=[];
+window.liveCreators=[];
 function renderLiveGallery(){
   const wrap=document.getElementById('liveGalleryItems');
   if(!wrap)return;
-  wrap.innerHTML=liveCreators.map((c,i)=>`
+  wrap.innerHTML=window.liveCreators.map((c,i)=>`
     <div class="gal-item" data-cat="${(c.craft||'').toLowerCase()}">
       <div class="gal-num">— LIVE ${String(i+1).padStart(3,'0')} —</div>
       <span class="gal-icon">${CRAFT_ICON[c.craft]||'✦'}</span>
@@ -41,9 +41,9 @@ function renderLiveGallery(){
 function subscribeLiveCreators(){
   const q=query(collection(db,'creators'),where('status','==','approved'),orderBy('approvedAt','desc'));
   onSnapshot(q,snap=>{
-    liveCreators=snap.docs.map(d=>({id:d.id,...d.data()}));
+    window.liveCreators=snap.docs.map(d=>({id:d.id,...d.data()}));
     renderLiveGallery();
-    renderMapMarkers(liveCreators);
+    renderMapMarkers(window.liveCreators);
   },err=>console.warn('creators feed error',err));
 }
 window.submitCreatorWork=async function(){
@@ -1191,7 +1191,7 @@ window.initWorldMap=function(){
   if(!el||!window.google)return;
   worldMap=new google.maps.Map(el,{zoom:2,center:{lat:15,lng:40},styles:WORLD_MAP_STYLE,disableDefaultUI:true,zoomControl:true,minZoom:2});
   worldMapInfoWindow=new google.maps.InfoWindow();
-  renderMapMarkers(liveCreators); // render whatever's already loaded from Firestore
+  renderMapMarkers(window.liveCreators); // render whatever's already loaded from Firestore
 };
 
 // SCROLL ANIMATIONS
