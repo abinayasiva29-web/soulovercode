@@ -275,6 +275,25 @@ body::before{
 .gal-add-plus{font-family:'Playfair Display',serif;font-size:2rem;color:var(--ink-light);margin-bottom:8px;}
 .gal-add-text{font-family:'Special Elite',cursive;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--ink-light);}
 
+/* ═══════════════════════════════════ WORLD MAP */
+.map-bg{background:var(--aged);}
+.map-stats{display:flex;justify-content:center;gap:2.5rem;margin-bottom:1.25rem;flex-wrap:wrap;}
+.map-stat{text-align:center;}
+.map-stat .map-stat-num{font-family:'Playfair Display',serif;font-weight:900;font-size:1.9rem;color:var(--ink);line-height:1;display:block;}
+.map-stat .map-stat-label{font-family:'Special Elite',cursive;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--ink-faded);}
+.map-frame{position:relative;border:2px solid var(--ink);box-shadow:6px 6px 0 var(--border-ink);}
+.map-frame::before{content:'';position:absolute;inset:0;pointer-events:none;border:8px solid var(--aged);box-shadow:inset 0 0 0 1px var(--border-ink);z-index:5;}
+.map-corner{position:absolute;font-family:'Special Elite',cursive;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--ink-faded);z-index:6;background:var(--aged);padding:2px 6px;}
+.map-corner.tl{top:2px;left:2px;}
+.map-corner.br{bottom:2px;right:2px;}
+#worldMap{width:100%;height:460px;}
+.map-legend{display:flex;justify-content:center;gap:0.6rem;flex-wrap:wrap;margin-top:1.25rem;}
+.map-chip{font-family:'Special Elite',cursive;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--ink-faded);border:1px solid var(--border-ink);padding:5px 12px;background:rgba(26,18,8,0.03);}
+.map-iw{font-family:'Crimson Text',serif;padding:2px;min-width:170px;}
+.map-iw-name{font-family:'Playfair Display',serif;font-weight:700;font-size:1.05rem;color:var(--ink);margin-bottom:2px;}
+.map-iw-cat{font-family:'Special Elite',cursive;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--red-ink);margin-bottom:4px;}
+.map-iw-loc{font-family:'IM Fell English',serif;font-size:13px;color:var(--ink-faded);}
+
 /* ═══════════════════════════════════ HUMAN FACT */
 .fact-bg{background:var(--aged3);border-top:4px double var(--ink);border-bottom:4px double var(--ink);}
 .fact-inner{display:grid;grid-template-columns:auto 1fr;gap:3rem;align-items:center;}
@@ -430,6 +449,7 @@ footer{background:var(--ink2);border-top:4px double var(--red-ink);padding:2rem 
     <a href="#whiteboard">Memory Box</a>
     <a href="#wotd">Word of Day</a>
     <a href="#gallery">Gallery</a>
+    <a href="#map">Map</a>
     <a href="#badge">Badge</a>
     <a href="#submit">Submit Work</a>
     <a href="https://discord.gg/exymssdSb" target="_blank">Discord</a>
@@ -691,6 +711,25 @@ footer{background:var(--ink2);border-top:4px double var(--red-ink);padding:2rem 
   </div>
 </section>
 
+<!-- ═══ WORLD MAP ═══ -->
+<section class="gazette-section map-bg" id="map">
+  <div class="section-masthead">
+    <div class="section-kicker">Dispatched From Everywhere</div>
+    <h2 class="section-title">Human Creators, Found on a Map</h2>
+  </div>
+  <div class="map-stats">
+    <div class="map-stat"><span class="map-stat-num" id="mapStatCount">—</span><span class="map-stat-label">Creators</span></div>
+    <div class="map-stat"><span class="map-stat-num" id="mapStatCountries">—</span><span class="map-stat-label">Countries</span></div>
+    <div class="map-stat"><span class="map-stat-num" id="mapStatCrafts">—</span><span class="map-stat-label">Crafts</span></div>
+  </div>
+  <div class="map-frame">
+    <span class="map-corner tl">Est. Soul Over Code</span>
+    <span class="map-corner br">Human Made · Verified</span>
+    <div id="worldMap"></div>
+  </div>
+  <div class="map-legend" id="mapLegend"></div>
+</section>
+
 <!-- ═══ HUMAN FACT ═══ -->
 <div class="gazette-section fact-bg">
   <div class="fact-inner">
@@ -838,6 +877,7 @@ footer{background:var(--ink2);border-top:4px double var(--red-ink);padding:2rem 
     <div class="footer-logo">Soul Over Code</div>
     <div class="footer-links">
       <a href="#gallery">Gallery</a>
+    <a href="#map">Map</a>
       <a href="#badge">Badge</a>
       <a href="https://discord.gg/exymssdSb" target="_blank">Discord</a>
       <a href="https://forms.gle/LMk2oEXpP4xfbJ4Q9" target="_blank">Submit Work</a>
@@ -1027,11 +1067,74 @@ if(canvas){
   renderMemories();
 }
 
+// WORLD CREATOR MAP
+// Add a creator by adding one line here — city/country/craft/name — plus lat/lng.
+const WORLD_MAP_CREATORS=[
+  {name:'Priya S.',city:'Chennai',country:'India',craft:'Writing',lat:13.0827,lng:80.2707},
+  {name:'Arjun M.',city:'Mumbai',country:'India',craft:'Art',lat:19.0760,lng:72.8777},
+  {name:'Kavya R.',city:'Coimbatore',country:'India',craft:'Poetry',lat:11.0168,lng:76.9558},
+  {name:'Ravi K.',city:'Delhi',country:'India',craft:'Photography',lat:28.7041,lng:77.1025},
+  {name:'Meera T.',city:'Bangalore',country:'India',craft:'Music',lat:12.9716,lng:77.5946},
+  {name:'Leila A.',city:'Istanbul',country:'Turkey',craft:'Crafts',lat:41.0082,lng:28.9784},
+  {name:'James O.',city:'Lagos',country:'Nigeria',craft:'Writing',lat:6.5244,lng:3.3792},
+  {name:'Yuki N.',city:'Tokyo',country:'Japan',craft:'Art',lat:35.6762,lng:139.6503}
+];
+const WORLD_MAP_STYLE=[
+  {elementType:'geometry',stylers:[{color:'#E8D9BE'}]},
+  {elementType:'labels.text.stroke',stylers:[{color:'#F2E8D5'}]},
+  {elementType:'labels.text.fill',stylers:[{color:'#5a4a36'}]},
+  {featureType:'administrative',elementType:'geometry.stroke',stylers:[{color:'#8B1A10'},{weight:0.5}]},
+  {featureType:'administrative.country',elementType:'labels.text.fill',stylers:[{color:'#2C1F0E'}]},
+  {featureType:'landscape',elementType:'geometry',stylers:[{color:'#EFE1C3'}]},
+  {featureType:'poi',stylers:[{visibility:'off'}]},
+  {featureType:'road',stylers:[{visibility:'off'}]},
+  {featureType:'transit',stylers:[{visibility:'off'}]},
+  {featureType:'water',elementType:'geometry',stylers:[{color:'#c9d6cd'}]},
+  {featureType:'water',elementType:'labels.text.fill',stylers:[{color:'#4f6b63'}]}
+];
+function fillMapStats(){
+  document.getElementById('mapStatCount').textContent=WORLD_MAP_CREATORS.length;
+  document.getElementById('mapStatCountries').textContent=new Set(WORLD_MAP_CREATORS.map(c=>c.country)).size;
+  document.getElementById('mapStatCrafts').textContent=new Set(WORLD_MAP_CREATORS.map(c=>c.craft)).size;
+  const legend=document.getElementById('mapLegend');
+  if(legend){
+    [...new Set(WORLD_MAP_CREATORS.map(c=>c.craft))].forEach(craft=>{
+      const chip=document.createElement('span');chip.className='map-chip';chip.textContent=craft;legend.appendChild(chip);
+    });
+  }
+}
+window.initWorldMap=function(){
+  fillMapStats();
+  const el=document.getElementById('worldMap');
+  if(!el||!window.google)return;
+  const map=new google.maps.Map(el,{zoom:2,center:{lat:15,lng:40},styles:WORLD_MAP_STYLE,disableDefaultUI:true,zoomControl:true,minZoom:2});
+  const infoWindow=new google.maps.InfoWindow();
+  WORLD_MAP_CREATORS.forEach(c=>{
+    const marker=new google.maps.Marker({
+      position:{lat:c.lat,lng:c.lng},map,title:c.name,
+      icon:{path:google.maps.SymbolPath.CIRCLE,scale:7,fillColor:'#8B1A10',fillOpacity:1,strokeColor:'#F2E8D5',strokeWeight:2}
+    });
+    marker.addListener('click',()=>{
+      infoWindow.setContent('<div class="map-iw"><div class="map-iw-name">'+c.name+'</div><div class="map-iw-cat">'+c.craft+'</div><div class="map-iw-loc">'+c.city+', '+c.country+'</div></div>');
+      infoWindow.open(map,marker);
+    });
+  });
+};
+
 // SCROLL ANIMATIONS
 const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.style.opacity='1';e.target.style.transform='translateY(0)';}});},{threshold:0.07});
 document.querySelectorAll('.gal-item,.skill-item,.why-item,.sub-step').forEach(el=>{
   el.style.opacity='0';el.style.transform='translateY(20px)';el.style.transition='opacity 0.55s,transform 0.55s';obs.observe(el);
 });
 </script>
+
+<!--
+  SECURITY NOTE: this key must be restricted in Google Cloud Console
+  (Credentials → this key → Application restrictions → HTTP referrers →
+  add your live domain, e.g. soulovercode.com/* and yourusername.github.io/*)
+  before or immediately after this goes live — a Maps key is always
+  visible in page source, restriction is what keeps it safe on a public repo.
+-->
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB6zUw_rhLL8F4ihjOgFx0PHbAqf8IbLGo&callback=initWorldMap" async defer></script>
 </body>
 </html>
