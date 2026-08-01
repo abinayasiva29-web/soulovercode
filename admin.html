@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Soul Over Code — Admin Review</title>
+<meta name="robots" content="noindex, nofollow">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#1A1208;color:#F2E8D5;min-height:100vh;padding:2rem;}
+h1{font-size:1.4rem;margin-bottom:1.5rem;}
+#gate{max-width:340px;margin:8rem auto;text-align:center;}
+#gate input{width:100%;padding:12px;font-size:15px;margin-bottom:10px;border:none;background:#2C1F0E;color:#F2E8D5;}
+#gate button{width:100%;padding:12px;background:#8B1A10;color:#F2E8D5;border:none;cursor:pointer;font-size:14px;}
+#app{display:none;max-width:900px;margin:0 auto;}
+.card{background:#2C1F0E;border:1px solid rgba(242,232,213,0.15);padding:1.25rem;margin-bottom:1rem;}
+.card h3{font-size:1.1rem;margin-bottom:4px;}
+.card .meta{font-size:12px;color:rgba(242,232,213,0.55);margin-bottom:10px;}
+.card .desc{font-size:14px;line-height:1.5;margin-bottom:10px;}
+.card a{color:#C99A52;}
+.row{display:flex;gap:10px;}
+.row button{flex:1;padding:10px;border:none;cursor:pointer;font-size:13px;letter-spacing:0.5px;}
+.approve{background:#4f6b63;color:#fff;}
+.reject{background:#8B1A10;color:#fff;}
+.empty{opacity:0.5;text-align:center;padding:3rem;}
+.status{font-size:12px;margin-top:8px;color:#C99A52;}
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <h1>Admin Review</h1>
+  <input type="password" id="pw" placeholder="Passcode"/>
+  <button onclick="checkPw()">Enter</button>
+</div>
+
+<div id="app">
+  <h1>Pending Submissions — Review &amp; Approve</h1>
+  <div id="list"><div class="empty">Loading…</div></div>
+</div>
+
+<script type="module">
+import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import{getFirestore,collection,query,where,onSnapshot,doc,updateDoc,serverTimestamp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const app=initializeApp({apiKey:"AIzaSyBaJF1NUzeMdukAEO-Z3MzOkmBpdg26QOs",authDomain:"soulovercode.firebaseapp.com",projectId:"soulovercode",storageBucket:"soulovercode.firebasestorage.app",messagingSenderId:"444742946957",appId:"1:444742946957:web:cd4c309ad2ec00d3fb52c4"});
+const db=getFirestore(app);
+
+// CHANGE THIS to your own passcode before publishing this file.
+const ADMIN_PASSCODE="soulcode2026";
+
+// Same Maps key as your main site — must have "Geocoding API" enabled too (see instructions).
+const MAPS_KEY="AIzaSyDfxD3VcYFZjwYj50fNpQLwZ9ynNLRQ488";
+
+window.checkPw=function(){
+  if(document.getElementById('pw').value===ADMIN_PASSCODE){
+    document.getElementById('gate').style.display='none';
+    document.getElementById('app').style.display='block';
+    startListening();
+  }else{
+    alert('Wrong passcode.');
+  }
+};
+
+async function geocode(city,country){
+  const q=encodeURIComponent(city+', '+country);
+  const res=await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${q}&key=${MAPS_KEY}`);
+  const data=await res.json();
+  if(data.status==='OK'&&data.results.length){
+    const loc=data.results[0].geometry.location;
+    return{lat:loc.lat,lng:loc.lng};
+  }
+  return null;
+}
+
+window.approveEntry=async function(id,city,country,btn){
+  btn.textContent='Locating city…';btn.disabled=true;
+  try{
+    const geo=await geocode(city,country);
+    if(!geo){alert('Could not find that city on the map. Check spelling and try again.');btn.textContent='Approve';btn.disabled=false;return;}
+    await updateDoc(doc(db,'creators',id),{status:'approved',lat:geo.lat,lng:geo.lng,approvedAt:serverTimestamp()});
+  }catch(e){alert('Something went wrong: '+e.message);btn.textContent='Approve';btn.disabled=false;}
+};
+
+window.rejectEntry=async function(id){
+  if(!confirm('Reject this submission? It will be hidden from the site.'))return;
+  await updateDoc(doc(db,'creators',id),{status:'rejected'});
+};
+
+function startListening(){
+  const q=query(collection(db,'creators'),where('status','==','pending'));
+  onSnapshot(q,snap=>{
+    const list=document.getElementById('list');
+    if(snap.empty){list.innerHTML='<div class="empty">No pending submissions right now.</div>';return;}
+    list.innerHTML=snap.docs.map(d=>{
+      const c=d.data();
+      return `<div class="card">
+        <h3>${c.name||'—'} — ${c.title||c.craft||''}</h3>
+        <div class="meta">${c.craft||''} · ${c.city||''}, ${c.country||''} ${c.email?'· '+c.email:''}</div>
+        <div class="desc">${c.description||''}</div>
+        ${c.link?`<a href="${c.link}" target="_blank">View work link →</a><br><br>`:''}
+        <div class="row">
+          <button class="approve" onclick="approveEntry('${d.id}','${(c.city||'').replace(/'/g,"\\'")}','${(c.country||'').replace(/'/g,"\\'")}',this)">Approve</button>
+          <button class="reject" onclick="rejectEntry('${d.id}')">Reject</button>
+        </div>
+      </div>`;
+    }).join('');
+  });
+}
+</script>
+</body>
+</html>
