@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Creativities of Our Souls — Soul Over Code</title>
+<meta name="description" content="Every real submission to Soul Over Code — human-made work, certified and celebrated.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Special+Elite&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --aged:#F2E8D5;--aged2:#EDE0C8;--aged3:#E5D5B5;
+  --ink:#1A1208;--ink-faded:#5a4a36;--ink-light:#8a7a62;
+  --red-ink:#8B1A10;--brass:#C99A52;--border-ink:rgba(26,18,8,0.18);
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--aged);color:var(--ink);font-family:'Crimson Text',serif;}
+a{color:inherit;}
+
+header{padding:2.5rem 2rem 1.5rem;text-align:center;border-bottom:4px double var(--ink);position:relative;}
+.back-link{position:absolute;top:1.5rem;left:2rem;font-family:'Special Elite',cursive;font-size:11px;letter-spacing:1px;text-decoration:none;color:var(--ink-faded);}
+.back-link:hover{color:var(--red-ink);}
+.eyebrow{font-family:'Special Elite',cursive;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--red-ink);margin-bottom:0.6rem;}
+h1{font-family:'Playfair Display',serif;font-weight:900;font-size:clamp(2rem,5vw,3.2rem);margin:0 0 0.5rem;}
+header p{font-family:'IM Fell English',serif;font-style:italic;font-size:16px;color:var(--ink-faded);max-width:38rem;margin:0 auto;}
+
+.filters{display:flex;justify-content:center;gap:0;margin:1.75rem auto 0;border:2px solid var(--ink);width:fit-content;flex-wrap:wrap;}
+.filters button{font-family:'Special Elite',cursive;font-size:10px;letter-spacing:1px;text-transform:uppercase;background:var(--aged);border:none;border-right:1px solid var(--border-ink);padding:10px 16px;cursor:pointer;color:var(--ink-faded);}
+.filters button:last-child{border-right:none;}
+.filters button.active{background:var(--ink);color:var(--aged);}
+
+.wrap{max-width:1200px;margin:0 auto;padding:2rem;}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:0;border:1px solid var(--border-ink);}
+.card{background:var(--aged2);border-right:1px solid var(--border-ink);border-bottom:1px solid var(--border-ink);padding:1.5rem;cursor:pointer;transition:background 0.2s;}
+.card:hover{background:var(--aged3);}
+.card-num{font-family:'Special Elite',cursive;font-size:9px;letter-spacing:2px;color:var(--ink-light);margin-bottom:10px;}
+.card img{width:100%;height:180px;object-fit:cover;border:1px solid var(--border-ink);margin-bottom:10px;display:block;}
+.card-icon{font-size:2rem;display:block;margin-bottom:10px;}
+.card-cat{font-family:'Special Elite',cursive;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--red-ink);margin-bottom:6px;}
+.card-title{font-family:'Playfair Display',serif;font-weight:700;font-size:1.2rem;margin-bottom:4px;}
+.card-creator{font-family:'IM Fell English',serif;font-style:italic;font-size:14px;color:var(--ink-faded);margin-bottom:10px;}
+.card-desc{font-size:15px;line-height:1.5;margin-bottom:10px;}
+.card-cert{font-family:'Special Elite',cursive;font-size:9px;letter-spacing:1px;color:var(--red-ink);}
+
+.empty-state{grid-column:1/-1;text-align:center;padding:5rem 2rem;}
+.empty-state .icon{font-size:3rem;margin-bottom:1rem;}
+.empty-state h3{font-family:'Playfair Display',serif;font-size:1.5rem;margin-bottom:0.5rem;}
+.empty-state p{font-family:'IM Fell English',serif;font-style:italic;color:var(--ink-faded);}
+.empty-state a{display:inline-block;margin-top:1.25rem;font-family:'Special Elite',cursive;font-size:11px;letter-spacing:1px;text-transform:uppercase;background:var(--red-ink);color:var(--aged);padding:12px 22px;text-decoration:none;}
+
+#lightbox{display:none;position:fixed;inset:0;background:rgba(26,18,8,0.88);z-index:9999;align-items:center;justify-content:center;padding:2rem;}
+#lightbox .lb-box{background:var(--aged);max-width:560px;width:100%;max-height:88vh;overflow-y:auto;border:2px solid var(--ink);box-shadow:8px 8px 0 var(--border-ink);padding:1.75rem;position:relative;}
+#lightbox .lb-close{position:absolute;top:10px;right:14px;font-size:1.6rem;cursor:pointer;color:var(--ink-faded);font-family:serif;line-height:1;}
+#lightbox .lb-close:hover{color:var(--red-ink);}
+#lightbox img{width:100%;max-height:420px;object-fit:contain;border:1px solid var(--border-ink);margin-bottom:1rem;background:#fff;}
+#lightbox h3{font-family:'Playfair Display',serif;font-weight:900;font-size:1.5rem;margin-bottom:4px;}
+#lightbox .lb-meta{font-family:'Special Elite',cursive;font-size:11px;letter-spacing:1px;color:var(--ink-faded);margin-bottom:12px;}
+#lightbox .lb-desc{font-family:'Crimson Text',serif;font-size:16px;line-height:1.6;margin-bottom:14px;}
+#lightbox .lb-link{display:inline-block;font-family:'Special Elite',cursive;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--aged);background:var(--red-ink);padding:10px 18px;text-decoration:none;}
+</style>
+</head>
+<body>
+
+<header>
+  <a href="index.html" class="back-link">← Back to Soul Over Code</a>
+  <div class="eyebrow">Every Real Submission, One Place</div>
+  <h1>Creativities of Our Souls</h1>
+  <p>This is the folder where every certified human submission lives — unfiltered, unedited, exactly as they made it. Click any piece to see it in full.</p>
+  <div class="filters" id="filters">
+    <button class="active" data-cat="all">All</button>
+    <button data-cat="writing">Writing</button>
+    <button data-cat="art">Art</button>
+    <button data-cat="poetry">Poetry</button>
+    <button data-cat="photography">Photography</button>
+    <button data-cat="music">Music</button>
+    <button data-cat="crafts">Crafts</button>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="grid" id="grid">
+    <div class="empty-state"><div class="icon">🗂️</div><h3>Loading submissions…</h3></div>
+  </div>
+</div>
+
+<div id="lightbox" onclick="if(event.target===this)closeLightbox()">
+  <div class="lb-box">
+    <span class="lb-close" onclick="closeLightbox()">&times;</span>
+    <img id="lbImage" src="" alt="" style="display:none;"/>
+    <h3 id="lbTitle"></h3>
+    <div class="lb-meta" id="lbMeta"></div>
+    <div class="lb-desc" id="lbDesc"></div>
+    <a id="lbLink" class="lb-link" href="#" target="_blank" rel="noopener" style="display:none;">View original work →</a>
+  </div>
+</div>
+
+<script type="module">
+import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import{getFirestore,collection,query,where,orderBy,onSnapshot}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const app=initializeApp({apiKey:"AIzaSyBaJF1NUzeMdukAEO-Z3MzOkmBpdg26QOs",authDomain:"soulovercode.firebaseapp.com",projectId:"soulovercode",storageBucket:"soulovercode.firebasestorage.app",messagingSenderId:"444742946957",appId:"1:444742946957:web:cd4c309ad2ec00d3fb52c4"});
+const db=getFirestore(app);
+
+const CRAFT_ICON={Writing:'✍️',Art:'🎨',Poetry:'📖',Photography:'📸',Music:'🎵',Crafts:'🏺'};
+let allWorks=[],activeFilter='all';
+
+function render(){
+  const grid=document.getElementById('grid');
+  const list=activeFilter==='all'?allWorks:allWorks.filter(c=>(c.craft||'').toLowerCase()===activeFilter);
+  if(list.length===0){
+    grid.innerHTML=`<div class="empty-state">
+      <div class="icon">🌱</div>
+      <h3>No submissions here yet</h3>
+      <p>Be the first human to fill this folder with something real.</p>
+      <a href="index.html#submit">Submit your work →</a>
+    </div>`;
+    return;
+  }
+  grid.innerHTML=list.map((c,i)=>`
+    <div class="card" onclick="openLightbox(${allWorks.indexOf(c)})">
+      <div class="card-num">— ${String(i+1).padStart(3,'0')} —</div>
+      ${c.image?`<img src="${c.image}" alt="${c.title||''}" loading="lazy"/>`:`<span class="card-icon">${CRAFT_ICON[c.craft]||'✦'}</span>`}
+      <div class="card-cat">${c.craft||''}</div>
+      <div class="card-title">${c.title||c.craft||'Human Work'}</div>
+      <div class="card-creator">${c.name||'Anonymous'} · ${c.city||''}${c.city&&c.country?', ':''}${c.country||''}</div>
+      <div class="card-desc">${c.description||''}</div>
+      <div class="card-cert">🏃 Human Made Certified — click to view</div>
+    </div>`).join('');
+}
+
+window.openLightbox=function(i){
+  const c=allWorks[i];
+  if(!c)return;
+  document.getElementById('lbTitle').textContent=c.title||c.craft||'Human Work';
+  document.getElementById('lbMeta').textContent=`${c.name||'Anonymous'} · ${c.city||''}${c.city&&c.country?', ':''}${c.country||''} · ${c.craft||''}`;
+  document.getElementById('lbDesc').textContent=c.description||'';
+  const imgEl=document.getElementById('lbImage');
+  if(c.image){imgEl.src=c.image;imgEl.style.display='block';}else{imgEl.style.display='none';}
+  const linkEl=document.getElementById('lbLink');
+  if(c.link){linkEl.href=c.link;linkEl.style.display='inline-block';}else{linkEl.style.display='none';}
+  document.getElementById('lightbox').style.display='flex';
+};
+window.closeLightbox=function(){document.getElementById('lightbox').style.display='none';};
+
+document.querySelectorAll('#filters button').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('#filters button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    activeFilter=btn.dataset.cat;
+    render();
+  });
+});
+
+const q=query(collection(db,'creators'),where('status','==','approved'),orderBy('approvedAt','desc'));
+onSnapshot(q,snap=>{
+  allWorks=snap.docs.map(d=>({id:d.id,...d.data()}));
+  render();
+},err=>{
+  console.error('feed error',err);
+  document.getElementById('grid').innerHTML=`<div class="empty-state"><div class="icon">⚠️</div><h3>Couldn't load submissions</h3><p>Please refresh, or try again shortly.</p></div>`;
+});
+</script>
+</body>
+</html>
