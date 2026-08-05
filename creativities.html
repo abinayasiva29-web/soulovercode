@@ -101,7 +101,9 @@ header p{font-family:'IM Fell English',serif;font-style:italic;font-size:16px;co
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import{getFirestore,collection,query,where,orderBy,onSnapshot}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
+import{initializeAppCheck,ReCaptchaV3Provider}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check.js";
 const app=initializeApp({apiKey:"AIzaSyBaJF1NUzeMdukAEO-Z3MzOkmBpdg26QOs",authDomain:"soulovercode.firebaseapp.com",projectId:"soulovercode",storageBucket:"soulovercode.firebasestorage.app",messagingSenderId:"444742946957",appId:"1:444742946957:web:cd4c309ad2ec00d3fb52c4"});
+initializeAppCheck(app,{provider:new ReCaptchaV3Provider('6LcgcnYtAAAAACByp5DFgS8M1TcNGujmyk_uAuQT'),isTokenAutoRefreshEnabled:true});
 const db=getFirestore(app);
 
 const CRAFT_ICON={Writing:'✍️',Art:'🎨',Poetry:'📖',Photography:'📸',Music:'🎵',Crafts:'🏺'};
