@@ -59,6 +59,8 @@ function subscribeLiveCreators(){
     window.liveCreators=snap.docs.map(d=>({id:d.id,...d.data()}));
     renderLiveGallery();
     renderMapMarkers(window.liveCreators);
+    const fc=document.getElementById('folderCount');
+    if(fc)fc.textContent=window.liveCreators.length;
   },err=>console.warn('creators feed error',err));
 }
 window.submitCreatorWork=async function(){
@@ -370,6 +372,13 @@ body::before{
 .gal-add-plus{font-family:'Playfair Display',serif;font-size:2rem;color:var(--ink-light);margin-bottom:8px;}
 .gal-add-text{font-family:'Special Elite',cursive;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--ink-light);}
 #liveGalleryItems{display:contents;}
+.gal-folder{grid-column:span 1;background:linear-gradient(135deg,var(--ink) 0%,#3a2c18 100%);color:var(--aged);text-decoration:none;padding:2rem 1.5rem;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:240px;border-right:1px solid var(--border-ink);border-bottom:1px solid var(--border-ink);transition:transform 0.2s,box-shadow 0.2s;}
+.gal-folder:hover{transform:translate(-3px,-3px);box-shadow:6px 6px 0 var(--red-ink);}
+.gal-folder-icon{font-size:2.4rem;margin-bottom:10px;}
+.gal-folder-title{font-family:'Playfair Display',serif;font-weight:900;font-size:1.3rem;margin-bottom:4px;}
+.gal-folder-sub{font-family:'IM Fell English',serif;font-style:italic;font-size:13px;color:rgba(242,232,213,0.7);margin-bottom:14px;}
+.gal-folder-count{font-family:'Special Elite',cursive;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--brass,#C99A52);margin-bottom:10px;}
+.gal-folder-cta{font-family:'Special Elite',cursive;font-size:10px;letter-spacing:2px;text-transform:uppercase;border-top:1px solid rgba(242,232,213,0.25);padding-top:10px;width:100%;}
 
 /* ═══════════════════════════════════ WORLD MAP */
 .map-bg{background:var(--aged);}
@@ -801,7 +810,14 @@ footer{background:var(--ink2);border-top:4px double var(--red-ink);padding:2rem 
     <button class="wb-btn" onclick="filterGallery('poetry',this)" style="border:none;border-radius:0;">Poetry</button>
   </div>
   <div class="gallery-grid" id="galleryGrid">
-    <div id="liveGalleryItems"></div>
+    <a href="creativities.html" class="gal-folder">
+      <div class="gal-folder-icon">🗂️</div>
+      <div class="gal-folder-title">Creativities of Our Souls</div>
+      <div class="gal-folder-sub">Every real submission, all in one place</div>
+      <div class="gal-folder-count"><span id="folderCount">0</span> works submitted</div>
+      <div class="gal-folder-cta">Open the folder →</div>
+    </a>
+    <div id="liveGalleryItems" style="display:none;"></div>
     <div class="gal-item" data-cat="writing"><div class="gal-num">— 001 —</div><span class="gal-icon">✍️</span><div class="gal-cat">Writing</div><div class="gal-name">Human Resume Writer</div><div class="gal-creator">Priya S. · Chennai, India 🇮🇳</div><div class="gal-desc">Personal stories that land jobs — not templates. Every word chosen with intention and soul that no algorithm can replicate.</div><div class="gal-cert">🏃 Human Made Certified</div></div>
     <div class="gal-item" data-cat="art"><div class="gal-num">— 002 —</div><span class="gal-icon">🎨</span><div class="gal-cat">Art</div><div class="gal-name">Hand Drawn Portraits</div><div class="gal-creator">Arjun M. · Mumbai, India 🇮🇳</div><div class="gal-desc">Pencil portraits with raw emotion. Every wobble in the line is where the soul lives — beautiful precisely because it is imperfect.</div><div class="gal-cert">🏃 Human Made Certified</div></div>
     <div class="gal-item" data-cat="poetry"><div class="gal-num">— 003 —</div><span class="gal-icon">📖</span><div class="gal-cat">Poetry</div><div class="gal-name">Tamil & English Poetry</div><div class="gal-creator">Kavya R. · Coimbatore, India 🇮🇳</div><div class="gal-desc">Words born from real heartbreak and real joy — what AI cannot generate because it cannot feel what these words were written from.</div><div class="gal-cert">🏃 Human Made Certified</div></div>
