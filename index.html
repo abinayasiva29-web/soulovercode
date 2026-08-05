@@ -16,7 +16,9 @@
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import{getFirestore,collection,addDoc,onSnapshot,doc,setDoc,getDoc,increment,updateDoc,serverTimestamp,query,where,orderBy}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import{getStorage,ref,uploadBytes,getDownloadURL}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 const app=initializeApp({apiKey:"AIzaSyBaJF1NUzeMdukAEO-Z3MzOkmBpdg26QOs",authDomain:"soulovercode.firebaseapp.com",projectId:"soulovercode",storageBucket:"soulovercode.firebasestorage.app",messagingSenderId:"444742946957",appId:"1:444742946957:web:cd4c309ad2ec00d3fb52c4"});
+const storage=getStorage(app);
 const db=getFirestore(app);
 async function initCounter(){const ref=doc(db,'community','counter');const snap=await getDoc(ref);if(!snap.exists())await setDoc(ref,{count:0});onSnapshot(ref,s=>{const c=s.data()?.count||0;document.querySelectorAll('.js-count').forEach(el=>el.textContent=c);});}
 initCounter();
@@ -28,16 +30,29 @@ function renderLiveGallery(){
   const wrap=document.getElementById('liveGalleryItems');
   if(!wrap)return;
   wrap.innerHTML=window.liveCreators.map((c,i)=>`
-    <div class="gal-item" data-cat="${(c.craft||'').toLowerCase()}">
+    <div class="gal-item" data-cat="${(c.craft||'').toLowerCase()}" onclick="openWorkLightbox(${i})" style="cursor:pointer;">
       <div class="gal-num">— LIVE ${String(i+1).padStart(3,'0')} —</div>
-      <span class="gal-icon">${CRAFT_ICON[c.craft]||'✦'}</span>
+      ${c.image?`<img src="${c.image}" alt="${c.title||''}" class="gal-thumb" loading="lazy"/>`:`<span class="gal-icon">${CRAFT_ICON[c.craft]||'✦'}</span>`}
       <div class="gal-cat">${c.craft||''}</div>
       <div class="gal-name">${c.title||c.craft||'Human Work'}</div>
       <div class="gal-creator">${c.name||'Anonymous'} · ${c.city||''}${c.city&&c.country?', ':''}${c.country||''}</div>
       <div class="gal-desc">${c.description||''}</div>
-      <div class="gal-cert">🏃 Human Made Certified</div>
+      <div class="gal-cert">🏃 Human Made Certified — click to view</div>
     </div>`).join('');
 }
+window.openWorkLightbox=function(i){
+  const c=window.liveCreators[i];
+  if(!c)return;
+  document.getElementById('lbTitle').textContent=c.title||c.craft||'Human Work';
+  document.getElementById('lbMeta').textContent=`${c.name||'Anonymous'} · ${c.city||''}${c.city&&c.country?', ':''}${c.country||''} · ${c.craft||''}`;
+  document.getElementById('lbDesc').textContent=c.description||'';
+  const imgEl=document.getElementById('lbImage');
+  if(c.image){imgEl.src=c.image;imgEl.style.display='block';}else{imgEl.style.display='none';}
+  const linkEl=document.getElementById('lbLink');
+  if(c.link){linkEl.href=c.link;linkEl.style.display='inline-block';}else{linkEl.style.display='none';}
+  document.getElementById('lightbox').style.display='flex';
+};
+window.closeLightbox=function(){document.getElementById('lightbox').style.display='none';};
 function subscribeLiveCreators(){
   const q=query(collection(db,'creators'),where('status','==','approved'),orderBy('approvedAt','desc'));
   onSnapshot(q,snap=>{
@@ -55,16 +70,37 @@ window.submitCreatorWork=async function(){
   const title=document.getElementById('subTitle').value.trim();
   const description=document.getElementById('subDesc').value.trim();
   const link=document.getElementById('subLink').value.trim();
+  const fileInput=document.getElementById('subImageFile');
+  const file=fileInput.files[0];
   if(!name||!city||!country||!craft||!description){showToast('Please fill in name, city, country, craft and a short description!');return;}
-  const btn=document.getElementById('subSubmitBtn');btn.textContent='Submitting...';btn.disabled=true;
+  if(file&&file.size>8*1024*1024){showToast('Image is too large — please use a photo under 8MB.');return;}
+  const btn=document.getElementById('subSubmitBtn');btn.disabled=true;
   try{
-    await addDoc(collection(db,'creators'),{name,email,city,country,craft,title,description,link,status:'pending',submittedAt:serverTimestamp()});
+    let image='';
+    if(file){
+      btn.textContent='Uploading image...';
+      const fileRef=ref(storage,'submissions/'+Date.now()+'_'+file.name.replace(/[^a-zA-Z0-9.\-_]/g,''));
+      await uploadBytes(fileRef,file);
+      image=await getDownloadURL(fileRef);
+    }
+    btn.textContent='Submitting...';
+    await addDoc(collection(db,'creators'),{name,email,city,country,craft,title,description,link,image,status:'pending',submittedAt:serverTimestamp()});
     ['subName','subEmail','subCity','subCountry','subTitle','subDesc','subLink'].forEach(id=>document.getElementById(id).value='');
     document.getElementById('subCraft').value='';
+    fileInput.value='';
+    document.getElementById('subImagePreviewWrap').style.display='none';
     showToast('Submitted! We\'ll review it and add you to the gallery and map soon. 🏃✦');
-  }catch(e){showToast('Something went wrong. Please try again!');}
+  }catch(e){showToast('Something went wrong. Please try again!');console.error(e);}
   btn.textContent='Submit your work — it\'s free';btn.disabled=false;
 };
+document.getElementById('subImageFile')?.addEventListener('change',function(){
+  const f=this.files[0];
+  const wrap=document.getElementById('subImagePreviewWrap');
+  if(!f){wrap.style.display='none';return;}
+  const url=URL.createObjectURL(f);
+  document.getElementById('subImagePreview').src=url;
+  wrap.style.display='block';
+});
 subscribeLiveCreators();
 window.openModal=()=>document.getElementById('overlay').classList.add('show');
 window.closeModal=()=>document.getElementById('overlay').classList.remove('show');
@@ -316,6 +352,19 @@ body::before{
 .gal-creator{font-family:'Special Elite',cursive;font-size:10px;color:var(--ink-faded);margin-bottom:8px;letter-spacing:1px;}
 .gal-desc{font-family:'IM Fell English',serif;font-size:14px;color:var(--ink-faded);line-height:1.6;margin-bottom:10px;}
 .gal-cert{font-family:'Special Elite',cursive;font-size:9px;letter-spacing:1px;color:var(--red-ink);}
+.gal-thumb{width:100%;height:160px;object-fit:cover;border:1px solid var(--border-ink);margin-bottom:10px;display:block;}
+
+/* ═══ LIGHTBOX ═══ */
+#lightbox{display:none;position:fixed;inset:0;background:rgba(26,18,8,0.88);z-index:9999;align-items:center;justify-content:center;padding:2rem;}
+#lightbox .lb-box{background:var(--aged);max-width:560px;width:100%;max-height:88vh;overflow-y:auto;border:2px solid var(--ink);box-shadow:8px 8px 0 var(--border-ink);padding:1.75rem;position:relative;}
+#lightbox .lb-close{position:absolute;top:10px;right:14px;font-size:1.6rem;cursor:pointer;color:var(--ink-faded);font-family:serif;line-height:1;}
+#lightbox .lb-close:hover{color:var(--red-ink);}
+#lightbox img{width:100%;max-height:420px;object-fit:contain;border:1px solid var(--border-ink);margin-bottom:1rem;background:#fff;}
+#lightbox h3{font-family:'Playfair Display',serif;font-weight:900;font-size:1.5rem;margin-bottom:4px;}
+#lightbox .lb-meta{font-family:'Special Elite',cursive;font-size:11px;letter-spacing:1px;color:var(--ink-faded);margin-bottom:12px;}
+#lightbox .lb-desc{font-family:'Crimson Text',serif;font-size:16px;line-height:1.6;margin-bottom:14px;}
+#lightbox .lb-link{display:inline-block;font-family:'Special Elite',cursive;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--aged);background:var(--red-ink);padding:10px 18px;text-decoration:none;}
+#lightbox .lb-link:hover{opacity:0.85;}
 .gal-add{background:var(--aged);border:none;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:240px;cursor:pointer;transition:background 0.2s;border-right:none;border-bottom:none;}
 .gal-add:hover{background:var(--aged2);}
 .gal-add-plus{font-family:'Playfair Display',serif;font-size:2rem;color:var(--ink-light);margin-bottom:8px;}
@@ -404,6 +453,8 @@ body::before{
 .sub-form-submit{width:100%;font-family:'Special Elite',cursive;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--aged);background:var(--red-ink);padding:14px;border:none;cursor:pointer;transition:opacity 0.2s;}
 .sub-form-submit:hover{opacity:0.85;}
 .sub-form-note{font-family:'Special Elite',cursive;font-size:9px;letter-spacing:1px;color:rgba(242,232,213,0.45);text-align:center;margin-top:10px;}
+.sub-file-label{display:block;font-family:'Special Elite',cursive;font-size:11px;letter-spacing:0.5px;color:rgba(242,232,213,0.7);margin-bottom:6px;}
+.sub-form input[type="file"]{padding:8px;font-family:'Special Elite',cursive;font-size:11px;color:var(--ink-faded);}
 
 /* ═══════════════════════════════════ DISCORD */
 .discord-bg{background:var(--aged2);border-top:4px double var(--ink);}
@@ -907,7 +958,10 @@ footer{background:var(--ink2);border-top:4px double var(--red-ink);padding:2rem 
       </select>
       <input type="text" id="subTitle" class="sub-input" placeholder="Title of your work"/>
       <textarea id="subDesc" class="sub-input" placeholder="Tell us about it — what makes it yours*"></textarea>
-      <input type="url" id="subLink" class="sub-input" placeholder="Link to your work (optional)"/>
+      <input type="url" id="subLink" class="sub-input" placeholder="Link to your work (optional — Instagram, LinkedIn, portfolio)"/>
+      <label class="sub-file-label" for="subImageFile">📷 Upload a photo of your artwork (optional)</label>
+      <input type="file" id="subImageFile" accept="image/*" class="sub-input"/>
+      <div id="subImagePreviewWrap" style="display:none;margin-bottom:10px;"><img id="subImagePreview" style="width:100%;max-height:200px;object-fit:contain;border:1px solid var(--border-ink);"/></div>
       <button class="sub-form-submit" id="subSubmitBtn" onclick="submitCreatorWork()">Submit your work — it's free</button>
       <div class="sub-form-note">Reviewed by hand before it appears in the Gallery and World Map. Usually within a few days.</div>
     </div>
@@ -1209,5 +1263,17 @@ document.querySelectorAll('.gal-item,.skill-item,.why-item,.sub-step').forEach(e
   visible in page source, restriction is what keeps it safe on a public repo.
 -->
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDfxD3VcYFZjwYj50fNpQLwZ9ynNLRQ488&callback=initWorldMap" async defer></script>
+<!-- ═══ ARTWORK LIGHTBOX ═══ -->
+<div id="lightbox" onclick="if(event.target===this)closeLightbox()">
+  <div class="lb-box">
+    <span class="lb-close" onclick="closeLightbox()">&times;</span>
+    <img id="lbImage" src="" alt=""/>
+    <h3 id="lbTitle"></h3>
+    <div class="lb-meta" id="lbMeta"></div>
+    <div class="lb-desc" id="lbDesc"></div>
+    <a id="lbLink" class="lb-link" href="#" target="_blank" rel="noopener">View original work →</a>
+  </div>
+</div>
+
 </body>
 </html>
