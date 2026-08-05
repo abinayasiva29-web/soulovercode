@@ -17,7 +17,9 @@
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import{getFirestore,collection,addDoc,onSnapshot,doc,setDoc,getDoc,increment,updateDoc,serverTimestamp,query,where,orderBy}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import{getStorage,ref,uploadBytes,getDownloadURL}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+import{initializeAppCheck,ReCaptchaV3Provider}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check.js";
 const app=initializeApp({apiKey:"AIzaSyBaJF1NUzeMdukAEO-Z3MzOkmBpdg26QOs",authDomain:"soulovercode.firebaseapp.com",projectId:"soulovercode",storageBucket:"soulovercode.firebasestorage.app",messagingSenderId:"444742946957",appId:"1:444742946957:web:cd4c309ad2ec00d3fb52c4"});
+initializeAppCheck(app,{provider:new ReCaptchaV3Provider('6LcgcnYtAAAAACByp5DFgS8M1TcNGujmyk_uAuQT'),isTokenAutoRefreshEnabled:true});
 const storage=getStorage(app);
 const db=getFirestore(app);
 async function initCounter(){const ref=doc(db,'community','counter');const snap=await getDoc(ref);if(!snap.exists())await setDoc(ref,{count:0});onSnapshot(ref,s=>{const c=s.data()?.count||0;document.querySelectorAll('.js-count').forEach(el=>el.textContent=c);});}
