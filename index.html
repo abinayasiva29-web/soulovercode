@@ -42,9 +42,12 @@ function renderLiveGallery(){
       <div class="gal-cert">🏃 Human Made Certified — click to view</div>
     </div>`).join('');
 }
+const TRANSLATE_KEY='AIzaSyDfxD3VcYFZjwYj50fNpQLwZ9ynNLRQ488';
+let lbCurrentWork=null,lbShowingTranslation=false,lbTranslationCache={};
 window.openWorkLightbox=function(i){
   const c=window.liveCreators[i];
   if(!c)return;
+  lbCurrentWork=c;lbShowingTranslation=false;lbTranslationCache={};
   document.getElementById('lbTitle').textContent=c.title||c.craft||'Human Work';
   document.getElementById('lbMeta').textContent=`${c.name||'Anonymous'} · ${c.city||''}${c.city&&c.country?', ':''}${c.country||''} · ${c.craft||''}`;
   document.getElementById('lbDesc').textContent=c.description||'';
@@ -52,7 +55,50 @@ window.openWorkLightbox=function(i){
   if(c.image){imgEl.src=c.image;imgEl.style.display='block';}else{imgEl.style.display='none';}
   const linkEl=document.getElementById('lbLink');
   if(c.link){linkEl.href=c.link;linkEl.style.display='inline-block';}else{linkEl.style.display='none';}
+  const tBtn=document.getElementById('lbTranslateBtn');
+  if(tBtn){tBtn.textContent='🌐 Translate';tBtn.style.display=c.description?'inline-block':'none';}
   document.getElementById('lightbox').style.display='flex';
+};
+window.toggleTranslate=async function(){
+  if(!lbCurrentWork)return;
+  const btn=document.getElementById('lbTranslateBtn');
+  const descEl=document.getElementById('lbDesc');
+  const titleEl=document.getElementById('lbTitle');
+  if(lbShowingTranslation){
+    descEl.textContent=lbCurrentWork.description||'';
+    titleEl.textContent=lbCurrentWork.title||lbCurrentWork.craft||'Human Work';
+    btn.textContent='🌐 Translate';
+    lbShowingTranslation=false;
+    return;
+  }
+  const targetLang=(navigator.language||'en').split('-')[0];
+  if(lbTranslationCache[targetLang]){
+    descEl.textContent=lbTranslationCache[targetLang].desc;
+    titleEl.textContent=lbTranslationCache[targetLang].title;
+    btn.textContent='↩ Show original';
+    lbShowingTranslation=true;
+    return;
+  }
+  btn.textContent='Translating...';btn.disabled=true;
+  try{
+    const textsToTranslate=[lbCurrentWork.description||'',lbCurrentWork.title||lbCurrentWork.craft||''];
+    const res=await fetch(`https://translation.googleapis.com/language/translate/v2?key=${TRANSLATE_KEY}`,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({q:textsToTranslate,target:targetLang,format:'text'})
+    });
+    const data=await res.json();
+    if(data.error)throw new Error(data.error.message);
+    const translated=data.data.translations.map(t=>t.translatedText);
+    lbTranslationCache[targetLang]={desc:translated[0],title:translated[1]};
+    descEl.textContent=translated[0];
+    titleEl.textContent=translated[1];
+    btn.textContent='↩ Show original';
+    lbShowingTranslation=true;
+  }catch(e){
+    btn.textContent='🌐 Translate';
+    console.warn('translate failed',e);
+  }
+  btn.disabled=false;
 };
 window.closeLightbox=function(){document.getElementById('lightbox').style.display='none';};
 function subscribeLiveCreators(){
@@ -369,6 +415,9 @@ body::before{
 #lightbox .lb-desc{font-family:'Crimson Text',serif;font-size:16px;line-height:1.6;margin-bottom:14px;}
 #lightbox .lb-link{display:inline-block;font-family:'Special Elite',cursive;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--aged);background:var(--red-ink);padding:10px 18px;text-decoration:none;}
 #lightbox .lb-link:hover{opacity:0.85;}
+.lb-translate-btn{display:inline-block;font-family:'Special Elite',cursive;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--ink);background:transparent;border:1px solid var(--border-ink);padding:8px 14px;cursor:pointer;margin-right:8px;margin-bottom:14px;}
+.lb-translate-btn:hover{background:rgba(139,26,16,0.06);border-color:var(--red-ink);}
+.lb-translate-btn:disabled{opacity:0.5;cursor:default;}
 .gal-add{background:var(--aged);border:none;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:240px;cursor:pointer;transition:background 0.2s;border-right:none;border-bottom:none;}
 .gal-add:hover{background:var(--aged2);}
 .gal-add-plus{font-family:'Playfair Display',serif;font-size:2rem;color:var(--ink-light);margin-bottom:8px;}
@@ -1289,6 +1338,7 @@ document.querySelectorAll('.gal-item,.skill-item,.why-item,.sub-step').forEach(e
     <h3 id="lbTitle"></h3>
     <div class="lb-meta" id="lbMeta"></div>
     <div class="lb-desc" id="lbDesc"></div>
+    <button id="lbTranslateBtn" onclick="toggleTranslate()" class="lb-translate-btn">🌐 Translate</button>
     <a id="lbLink" class="lb-link" href="#" target="_blank" rel="noopener">View original work →</a>
   </div>
 </div>
