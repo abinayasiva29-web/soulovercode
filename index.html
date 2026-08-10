@@ -35,7 +35,7 @@ function renderLiveGallery(){
     <div class="gal-item" data-cat="${(c.craft||'').toLowerCase()}" onclick="openWorkLightbox(${i})" style="cursor:pointer;">
       <div class="gal-num">— LIVE ${String(i+1).padStart(3,'0')} —</div>
       ${c.image?`<img src="${c.image}" alt="${c.title||''}" class="gal-thumb" loading="lazy"/>`:`<span class="gal-icon">${CRAFT_ICON[c.craft]||'✦'}</span>`}
-      <div class="gal-cat">${c.craft||''}</div>
+      <div class="gal-cat">${c.craft||''}${c.voiceNote?' · 🎙️ Voice intro':''}</div>
       <div class="gal-name">${c.title||c.craft||'Human Work'}</div>
       <div class="gal-creator">${c.name||'Anonymous'} · ${c.city||''}${c.city&&c.country?', ':''}${c.country||''}</div>
       <div class="gal-desc">${c.description||''}</div>
@@ -53,6 +53,8 @@ window.openWorkLightbox=function(i){
   document.getElementById('lbDesc').textContent=c.description||'';
   const imgEl=document.getElementById('lbImage');
   if(c.image){imgEl.src=c.image;imgEl.style.display='block';}else{imgEl.style.display='none';}
+  const voiceEl=document.getElementById('lbVoice');
+  if(voiceEl){if(c.voiceNote){voiceEl.src=c.voiceNote;voiceEl.style.display='block';}else{voiceEl.style.display='none';}}
   const linkEl=document.getElementById('lbLink');
   if(c.link){linkEl.href=c.link;linkEl.style.display='inline-block';}else{linkEl.style.display='none';}
   const tBtn=document.getElementById('lbTranslateBtn');
@@ -111,6 +113,46 @@ function subscribeLiveCreators(){
     if(fc)fc.textContent=window.liveCreators.length;
   },err=>console.warn('creators feed error',err));
 }
+let voiceRecorder=null,voiceChunks=[],voiceBlob=null,voiceStream=null,voiceTimerInterval=null,voiceSeconds=0;
+window.toggleVoiceRecording=async function(){
+  const btn=document.getElementById('subVoiceRecordBtn');
+  const timerEl=document.getElementById('subVoiceTimer');
+  const previewEl=document.getElementById('subVoicePreview');
+  if(voiceRecorder&&voiceRecorder.state==='recording'){
+    voiceRecorder.stop();
+    return;
+  }
+  try{
+    voiceStream=await navigator.mediaDevices.getUserMedia({audio:true});
+  }catch(e){
+    showToast('Could not access your microphone — check your browser permissions.');
+    return;
+  }
+  voiceChunks=[];
+  voiceRecorder=new MediaRecorder(voiceStream);
+  voiceRecorder.ondataavailable=e=>voiceChunks.push(e.data);
+  voiceRecorder.onstop=function(){
+    voiceBlob=new Blob(voiceChunks,{type:'audio/webm'});
+    previewEl.src=URL.createObjectURL(voiceBlob);
+    previewEl.style.display='block';
+    btn.textContent='● Re-record';
+    btn.classList.remove('recording');
+    clearInterval(voiceTimerInterval);
+    timerEl.textContent='';
+    voiceStream.getTracks().forEach(t=>t.stop());
+  };
+  voiceRecorder.start();
+  voiceSeconds=0;
+  btn.textContent='■ Stop recording';
+  btn.classList.add('recording');
+  timerEl.textContent='0:00';
+  voiceTimerInterval=setInterval(()=>{
+    voiceSeconds++;
+    const m=Math.floor(voiceSeconds/60),s=String(voiceSeconds%60).padStart(2,'0');
+    timerEl.textContent=`${m}:${s}`;
+    if(voiceSeconds>=20)voiceRecorder.stop();
+  },1000);
+};
 window.submitCreatorWork=async function(){
   const name=document.getElementById('subName').value.trim();
   const email=document.getElementById('subEmail').value.trim();
@@ -133,12 +175,22 @@ window.submitCreatorWork=async function(){
       await uploadBytes(fileRef,file);
       image=await getDownloadURL(fileRef);
     }
+    let voiceNote='';
+    if(voiceBlob){
+      btn.textContent='Uploading voice note...';
+      const voiceRef=ref(storage,'submissions/'+Date.now()+'_voice.webm');
+      await uploadBytes(voiceRef,voiceBlob);
+      voiceNote=await getDownloadURL(voiceRef);
+    }
     btn.textContent='Submitting...';
-    await addDoc(collection(db,'creators'),{name,email,city,country,craft,title,description,link,image,status:'pending',submittedAt:serverTimestamp()});
+    await addDoc(collection(db,'creators'),{name,email,city,country,craft,title,description,link,image,voiceNote,status:'pending',submittedAt:serverTimestamp()});
     ['subName','subEmail','subCity','subCountry','subTitle','subDesc','subLink'].forEach(id=>document.getElementById(id).value='');
     document.getElementById('subCraft').value='';
     fileInput.value='';
     document.getElementById('subImagePreviewWrap').style.display='none';
+    document.getElementById('subVoicePreview').style.display='none';
+    document.getElementById('subVoiceRecordBtn').textContent='● Start recording';
+    voiceBlob=null;
     showToast('Submitted! We\'ll review it and add you to the gallery and map soon. 🏃✦');
   }catch(e){showToast('Something went wrong. Please try again!');console.error(e);}
   btn.textContent='Submit your work — it\'s free';btn.disabled=false;
@@ -515,6 +567,12 @@ body::before{
 .sub-form-note{font-family:'Special Elite',cursive;font-size:9px;letter-spacing:1px;color:rgba(242,232,213,0.45);text-align:center;margin-top:10px;}
 .sub-file-label{display:block;font-family:'Special Elite',cursive;font-size:11px;letter-spacing:0.5px;color:rgba(242,232,213,0.7);margin-bottom:6px;}
 .sub-form input[type="file"]{padding:8px;font-family:'Special Elite',cursive;font-size:11px;color:var(--ink-faded);}
+.sub-voice-box{display:flex;align-items:center;gap:12px;margin-bottom:6px;}
+.sub-voice-btn{font-family:'Special Elite',cursive;font-size:11px;letter-spacing:1px;text-transform:uppercase;background:transparent;border:1px solid rgba(242,232,213,0.35);color:var(--aged);padding:10px 16px;cursor:pointer;transition:all 0.2s;}
+.sub-voice-btn:hover{border-color:var(--red-ink);background:rgba(139,26,16,0.15);}
+.sub-voice-btn.recording{background:var(--red-ink);border-color:var(--red-ink);animation:pulse-rec 1.2s infinite;}
+.sub-voice-timer{font-family:'Special Elite',cursive;font-size:11px;color:rgba(242,232,213,0.6);}
+@keyframes pulse-rec{0%,100%{opacity:1;}50%{opacity:0.6;}}
 
 /* ═══════════════════════════════════ DISCORD */
 .discord-bg{background:var(--aged2);border-top:4px double var(--ink);}
@@ -1029,7 +1087,14 @@ footer{background:var(--ink2);border-top:4px double var(--red-ink);padding:2rem 
       <label class="sub-file-label" for="subImageFile">📷 Upload a photo of your artwork (optional)</label>
       <input type="file" id="subImageFile" accept="image/*" class="sub-input"/>
       <div id="subImagePreviewWrap" style="display:none;margin-bottom:10px;"><img id="subImagePreview" style="width:100%;max-height:200px;object-fit:contain;border:1px solid var(--border-ink);"/></div>
+      <label class="sub-file-label">🎙️ Record a voice intro — your real voice, up to 20 seconds (optional)</label>
+      <div class="sub-voice-box">
+        <button type="button" id="subVoiceRecordBtn" class="sub-voice-btn" onclick="toggleVoiceRecording()">● Start recording</button>
+        <span id="subVoiceTimer" class="sub-voice-timer"></span>
+      </div>
+      <audio id="subVoicePreview" controls style="display:none;width:100%;margin-top:8px;margin-bottom:14px;"></audio>
       <button class="sub-form-submit" id="subSubmitBtn" onclick="submitCreatorWork()">Submit your work — it's free</button>
+      <div class="sub-form-note">Hearing your own voice explain your work — accent, pauses, and all — is something no AI can fake. That's the whole point of Human Made.</div>
       <div class="sub-form-note">Reviewed by hand before it appears in the Gallery and World Map. Usually within a few days.</div>
     </div>
   </div>
@@ -1335,6 +1400,7 @@ document.querySelectorAll('.gal-item,.skill-item,.why-item,.sub-step').forEach(e
   <div class="lb-box">
     <span class="lb-close" onclick="closeLightbox()">&times;</span>
     <img id="lbImage" src="" alt=""/>
+    <audio id="lbVoice" controls style="display:none;width:100%;margin-bottom:1rem;"></audio>
     <h3 id="lbTitle"></h3>
     <div class="lb-meta" id="lbMeta"></div>
     <div class="lb-desc" id="lbDesc"></div>
