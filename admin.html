@@ -120,6 +120,7 @@ function startListening(){
       const c=d.data();
       return `<div class="card">
         ${c.image?`<img src="${c.image}" alt="artwork"/>`:''}
+        ${c.voiceNote?`<audio controls style="width:100%;margin-bottom:10px;" src="${c.voiceNote}"></audio>`:''}
         <h3>${c.name||'—'} — ${c.title||c.craft||''}</h3>
         <div class="meta">${c.craft||''} · ${c.city||''}, ${c.country||''} ${c.email?'· '+c.email:''}</div>
         <div class="desc">${c.description||''}</div>
