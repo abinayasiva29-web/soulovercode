@@ -168,7 +168,7 @@ window.toggleTranslate=async function(){
     lbShowingTranslation=false;
     return;
   }
-  const targetLang='ta'; // TEMPORARY TEST OVERRIDE — remove before final use
+  const targetLang=(navigator.language||'en').split('-')[0];
   if(lbTranslationCache[targetLang]){
     descEl.textContent=lbTranslationCache[targetLang].desc;
     titleEl.textContent=lbTranslationCache[targetLang].title;
