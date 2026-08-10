@@ -105,6 +105,7 @@ header p{font-family:'IM Fell English',serif;font-style:italic;font-size:16px;co
   <div class="lb-box">
     <span class="lb-close" onclick="closeLightbox()">&times;</span>
     <img id="lbImage" src="" alt="" style="display:none;"/>
+    <audio id="lbVoice" controls style="display:none;width:100%;margin-bottom:1rem;"></audio>
     <h3 id="lbTitle"></h3>
     <div class="lb-meta" id="lbMeta"></div>
     <div class="lb-desc" id="lbDesc"></div>
@@ -142,7 +143,7 @@ function render(){
     <div class="card" onclick="openLightbox(${allWorks.indexOf(c)})">
       <div class="card-num">— ${String(i+1).padStart(3,'0')} —</div>
       ${c.image?`<img src="${c.image}" alt="${c.title||''}" loading="lazy"/>`:`<span class="card-icon">${CRAFT_ICON[c.craft]||'✦'}</span>`}
-      <div class="card-cat">${c.craft||''}</div>
+      <div class="card-cat">${c.craft||''}${c.voiceNote?' · 🎙️ Voice intro':''}</div>
       <div class="card-title" id="ct-${c.id}">${c.title||c.craft||'Human Work'}</div>
       <div class="card-creator">${c.name||'Anonymous'} · ${c.city||''}${c.city&&c.country?', ':''}${c.country||''}</div>
       <div class="card-desc" id="cd-${c.id}">${c.description||''}</div>
@@ -215,6 +216,8 @@ window.openLightbox=function(i){
   document.getElementById('lbDesc').textContent=c.description||'';
   const imgEl=document.getElementById('lbImage');
   if(c.image){imgEl.src=c.image;imgEl.style.display='block';}else{imgEl.style.display='none';}
+  const voiceEl=document.getElementById('lbVoice');
+  if(voiceEl){if(c.voiceNote){voiceEl.src=c.voiceNote;voiceEl.style.display='block';}else{voiceEl.style.display='none';}}
   const linkEl=document.getElementById('lbLink');
   if(c.link){linkEl.href=c.link;linkEl.style.display='inline-block';}else{linkEl.style.display='none';}
   const tBtn=document.getElementById('lbTranslateBtn');
