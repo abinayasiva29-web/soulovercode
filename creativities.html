@@ -45,6 +45,10 @@ header p{font-family:'IM Fell English',serif;font-style:italic;font-size:16px;co
 .card-desc{font-size:15px;line-height:1.5;margin-bottom:10px;}
 .card-cert{font-family:'Special Elite',cursive;font-size:9px;letter-spacing:1px;color:var(--red-ink);}
 
+.auto-translate-banner{display:flex;align-items:center;justify-content:space-between;background:var(--aged3);border:1px solid var(--border-ink);padding:0.8rem 1.2rem;margin-bottom:1.5rem;font-family:'IM Fell English',serif;font-style:italic;font-size:14px;color:var(--ink-faded);}
+.auto-translate-banner button{font-family:'Special Elite',cursive;font-size:10px;letter-spacing:1px;text-transform:uppercase;background:transparent;border:1px solid var(--border-ink);padding:6px 12px;cursor:pointer;color:var(--ink);}
+.auto-translate-banner button:hover{border-color:var(--red-ink);background:rgba(139,26,16,0.06);}
+
 .empty-state{grid-column:1/-1;text-align:center;padding:5rem 2rem;}
 .empty-state .icon{font-size:3rem;margin-bottom:1rem;}
 .empty-state h3{font-family:'Playfair Display',serif;font-size:1.5rem;margin-bottom:0.5rem;}
@@ -84,6 +88,10 @@ header p{font-family:'IM Fell English',serif;font-style:italic;font-size:16px;co
 </header>
 
 <div class="wrap">
+  <div id="autoTranslateBanner" class="auto-translate-banner" style="display:none;">
+    <span>🌐 Showing these in your language automatically.</span>
+    <button id="autoTranslateToggleBtn" onclick="toggleGridOriginal()">↩ Show original language</button>
+  </div>
   <div class="grid" id="grid">
     <div class="empty-state"><div class="icon">🗂️</div><h3>Loading submissions…</h3></div>
   </div>
@@ -111,7 +119,8 @@ initializeAppCheck(app,{provider:new ReCaptchaV3Provider('6LcgcnYtAAAAACByp5DFgS
 const db=getFirestore(app);
 
 const CRAFT_ICON={Writing:'✍️',Art:'🎨',Poetry:'📖',Photography:'📸',Music:'🎵',Crafts:'🏺'};
-let allWorks=[],activeFilter='all';
+const TRANSLATE_KEY='AIzaSyDfxD3VcYFZjwYj50fNpQLwZ9ynNLRQ488';
+let allWorks=[],activeFilter='all',gridShowingOriginal=false,gridTranslationCache={};
 
 function render(){
   const grid=document.getElementById('grid');
@@ -130,12 +139,67 @@ function render(){
       <div class="card-num">— ${String(i+1).padStart(3,'0')} —</div>
       ${c.image?`<img src="${c.image}" alt="${c.title||''}" loading="lazy"/>`:`<span class="card-icon">${CRAFT_ICON[c.craft]||'✦'}</span>`}
       <div class="card-cat">${c.craft||''}</div>
-      <div class="card-title">${c.title||c.craft||'Human Work'}</div>
+      <div class="card-title" id="ct-${c.id}">${c.title||c.craft||'Human Work'}</div>
       <div class="card-creator">${c.name||'Anonymous'} · ${c.city||''}${c.city&&c.country?', ':''}${c.country||''}</div>
-      <div class="card-desc">${c.description||''}</div>
+      <div class="card-desc" id="cd-${c.id}">${c.description||''}</div>
       <div class="card-cert">🏃 Human Made Certified — click to view</div>
     </div>`).join('');
+  autoTranslateGrid(list);
 }
+
+async function autoTranslateGrid(list){
+  const targetLang=(navigator.language||'en').split('-')[0];
+  const banner=document.getElementById('autoTranslateBanner');
+  if(targetLang==='en'){if(banner)banner.style.display='none';return;}
+  if(banner)banner.style.display='flex';
+  if(gridShowingOriginal)return;
+  const toTranslate=list.filter(c=>!(gridTranslationCache[targetLang]&&gridTranslationCache[targetLang][c.id]));
+  if(toTranslate.length===0){applyGridTranslations(list,targetLang);return;}
+  try{
+    const texts=[];
+    toTranslate.forEach(c=>{texts.push(c.title||c.craft||'');texts.push(c.description||'');});
+    const res=await fetch(`https://translation.googleapis.com/language/translate/v2?key=${TRANSLATE_KEY}`,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({q:texts,target:targetLang,format:'text'})
+    });
+    const data=await res.json();
+    if(data.error)throw new Error(data.error.message);
+    const out=data.data.translations.map(t=>t.translatedText);
+    gridTranslationCache[targetLang]=gridTranslationCache[targetLang]||{};
+    toTranslate.forEach((c,idx)=>{
+      gridTranslationCache[targetLang][c.id]={title:out[idx*2],desc:out[idx*2+1]};
+    });
+    applyGridTranslations(list,targetLang);
+  }catch(e){console.warn('grid auto-translate failed',e);}
+}
+
+function applyGridTranslations(list,targetLang){
+  list.forEach(c=>{
+    const cached=gridTranslationCache[targetLang]&&gridTranslationCache[targetLang][c.id];
+    if(!cached)return;
+    const tEl=document.getElementById('ct-'+c.id),dEl=document.getElementById('cd-'+c.id);
+    if(tEl)tEl.textContent=cached.title;
+    if(dEl)dEl.textContent=cached.desc;
+  });
+}
+
+window.toggleGridOriginal=function(){
+  gridShowingOriginal=!gridShowingOriginal;
+  const btn=document.getElementById('autoTranslateToggleBtn');
+  const list=activeFilter==='all'?allWorks:allWorks.filter(c=>(c.craft||'').toLowerCase()===activeFilter);
+  if(gridShowingOriginal){
+    list.forEach(c=>{
+      const tEl=document.getElementById('ct-'+c.id),dEl=document.getElementById('cd-'+c.id);
+      if(tEl)tEl.textContent=c.title||c.craft||'Human Work';
+      if(dEl)dEl.textContent=c.description||'';
+    });
+    if(btn)btn.textContent='🌐 Show translated';
+  }else{
+    const targetLang=(navigator.language||'en').split('-')[0];
+    applyGridTranslations(list,targetLang);
+    if(btn)btn.textContent='↩ Show original language';
+  }
+};
 
 const TRANSLATE_KEY='AIzaSyDfxD3VcYFZjwYj50fNpQLwZ9ynNLRQ488';
 let lbCurrentWork=null,lbShowingTranslation=false,lbTranslationCache={};
