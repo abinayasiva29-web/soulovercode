@@ -22,6 +22,17 @@ const app=initializeApp({apiKey:"AIzaSyBaJF1NUzeMdukAEO-Z3MzOkmBpdg26QOs",authDo
 initializeAppCheck(app,{provider:new ReCaptchaV3Provider('6LcgcnYtAAAAACByp5DFgS8M1TcNGujmyk_uAuQT'),isTokenAutoRefreshEnabled:true});
 const storage=getStorage(app);
 const db=getFirestore(app);
+window.fbDb=db;
+window.fbStorage=storage;
+window.fbCollection=collection;
+window.fbAddDoc=addDoc;
+window.fbOnSnapshot=onSnapshot;
+window.fbQuery=query;
+window.fbOrderBy=orderBy;
+window.fbServerTimestamp=serverTimestamp;
+window.fbRef=ref;
+window.fbUploadBytes=uploadBytes;
+window.fbGetDownloadURL=getDownloadURL;
 async function initCounter(){const ref=doc(db,'community','counter');const snap=await getDoc(ref);if(!snap.exists())await setDoc(ref,{count:0});onSnapshot(ref,s=>{const c=s.data()?.count||0;document.querySelectorAll('.js-count').forEach(el=>el.textContent=c);});}
 initCounter();
 
@@ -429,6 +440,16 @@ body::before{
 .wb-save-btn{font-family:'Special Elite',cursive;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--aged);background:var(--red-ink);padding:9px 18px;border:1.5px solid var(--ink);cursor:pointer;white-space:nowrap;box-shadow:3px 3px 0 var(--ink);transition:all 0.2s;}
 .wb-save-btn:hover{transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--ink);}
 .memories-col-head{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;border-bottom:1px solid var(--ink);padding-bottom:5px;margin-bottom:10px;}
+.wb-shared-note{background:var(--ink);color:var(--aged);padding:1.5rem;text-align:center;}
+.wb-shared-count{font-family:'Playfair Display',serif;font-weight:900;font-size:1.8rem;margin-bottom:10px;}
+.wb-shared-note p{font-family:'IM Fell English',serif;font-style:italic;font-size:13px;color:rgba(242,232,213,0.75);line-height:1.5;margin:0;}
+.sketchbook-bg{background:var(--aged3);}
+.memory-wall{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1px;background:var(--border-ink);border:1px solid var(--border-ink);}
+.wall-item{background:var(--aged);padding:0.75rem;}
+.wall-item img{width:100%;height:160px;object-fit:contain;background:#fff;border:1px solid var(--border-ink);margin-bottom:8px;}
+.wall-meta{text-align:center;}
+.wall-title{font-family:'Playfair Display',serif;font-weight:700;font-size:0.9rem;margin-bottom:2px;}
+.wall-by{font-family:'IM Fell English',serif;font-style:italic;font-size:11px;color:var(--ink-faded);}
 #memoriesBox{display:flex;flex-direction:column;gap:8px;max-height:420px;overflow-y:auto;}
 .mem-item{border:1.5px solid var(--border-ink);}
 .mem-item img{width:100%;display:block;border-bottom:1px solid var(--border-ink);filter:sepia(10%);}
@@ -887,10 +908,24 @@ footer{background:var(--ink2);border-top:4px double var(--red-ink);padding:2rem 
       </div>
     </div>
     <div>
-      <div class="memories-col-head">Your Memory Box</div>
-      <div id="memoriesBox"><div class="wb-empty">Your drawings will appear here, saved privately in your browser.</div></div>
-      <p style="margin-top:10px;font-family:'IM Fell English',serif;font-size:12px;color:var(--ink-light);font-style:italic;">Saved only in your browser. Only visible to you on this device.</p>
+      <div class="memories-col-head">Your Drawing Joins Everyone's</div>
+      <div class="wb-shared-note">
+        <div class="wb-shared-count"><span id="memoryWallCount">0</span> memories shared so far</div>
+        <p>Every drawing you save here becomes part of <strong>The World's Sketchbook</strong> below — visible to everyone who visits Soul Over Code, not just you.</p>
+      </div>
     </div>
+  </div>
+</section>
+
+<!-- ═══ THE WORLD'S SKETCHBOOK ═══ -->
+<section class="gazette-section sketchbook-bg" id="sketchbook">
+  <div class="section-masthead">
+    <div class="section-kicker">A Wall Made By Strangers</div>
+    <h2 class="section-title">The World's Sketchbook</h2>
+    <p style="font-family:'IM Fell English',serif;font-size:15px;color:var(--ink-faded);margin-top:10px;font-style:italic;">Every drawing on this page was made by someone real, right now, somewhere in the world. No two the same — because no two humans are.</p>
+  </div>
+  <div id="memoryWall" class="memory-wall">
+    <div class="wb-empty">No memories yet — be the first to draw something real.</div>
   </div>
 </section>
 
@@ -1343,28 +1378,49 @@ if(canvas){
     document.getElementById('btnEraser').classList.toggle('active',t==='eraser');
   };
   window.clearCanvas=function(){ctx.clearRect(0,0,canvas.width,canvas.height);};
-  window.saveDrawing=function(){
+  window.saveDrawing=async function(){
     const name=document.getElementById('drawingName').value.trim()||'Anonymous Human';
     const title=document.getElementById('drawingTitle').value.trim()||'Untitled drawing';
-    const dataUrl=canvas.toDataURL('image/png');
-    const date=new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
-    const memories=JSON.parse(localStorage.getItem('soc_memories')||'[]');
-    memories.unshift({name,title,date,img:dataUrl});
-    if(memories.length>20)memories.pop();
-    localStorage.setItem('soc_memories',JSON.stringify(memories));
-    renderMemories();
-    showToast('Saved to your Memory Box! ✦');
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    document.getElementById('drawingTitle').value='';
+    const saveBtn=document.querySelector('.wb-save-btn');
+    const originalBtnText=saveBtn.textContent;
+    saveBtn.textContent='Saving...';saveBtn.disabled=true;
+    try{
+      const blob=await new Promise(res=>canvas.toBlob(res,'image/png'));
+      const fileRef=window.fbRef(window.fbStorage,'memories/'+Date.now()+'_drawing.png');
+      await window.fbUploadBytes(fileRef,blob);
+      const imgUrl=await window.fbGetDownloadURL(fileRef);
+      await window.fbAddDoc(window.fbCollection(window.fbDb,'memories'),{name,title,image:imgUrl,createdAt:window.fbServerTimestamp()});
+      showToast('Added to The World\'s Sketchbook — thank you! ✦');
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      document.getElementById('drawingTitle').value='';
+    }catch(e){
+      showToast('Something went wrong saving your drawing. Please try again!');
+      console.error(e);
+    }
+    saveBtn.textContent=originalBtnText;saveBtn.disabled=false;
   };
-  function renderMemories(){
-    const box=document.getElementById('memoriesBox');if(!box)return;
-    const memories=JSON.parse(localStorage.getItem('soc_memories')||'[]');
-    if(!memories.length){box.innerHTML='<div class="wb-empty">Your drawings will appear here, saved privately in your browser.</div>';return;}
-    box.innerHTML=memories.map((m,i)=>`<div class="mem-item"><img src="${m.img}" alt="${m.title}"><div class="mem-meta"><div><div class="mem-title">${m.title}</div><div class="mem-by">by ${m.name} · ${m.date}</div></div><button class="mem-del" onclick="deleteMemory(${i})">Delete</button></div></div>`).join('');
+  function subscribeMemoryWall(){
+    const wallEl=document.getElementById('memoryWall');
+    const countEl=document.getElementById('memoryWallCount');
+    if(!wallEl)return;
+    const q=window.fbQuery(window.fbCollection(window.fbDb,'memories'),window.fbOrderBy('createdAt','desc'));
+    window.fbOnSnapshot(q,snap=>{
+      const items=snap.docs.map(d=>d.data());
+      if(countEl)countEl.textContent=items.length;
+      if(items.length===0){
+        wallEl.innerHTML='<div class="wb-empty">No memories yet — be the first to draw something real.</div>';
+        return;
+      }
+      wallEl.innerHTML=items.map(m=>{
+        const d=m.createdAt&&m.createdAt.toDate?m.createdAt.toDate().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'}):'';
+        return `<div class="wall-item">
+          <img src="${m.image}" alt="${m.title||'drawing'}" loading="lazy"/>
+          <div class="wall-meta"><div class="wall-title">${m.title||'Untitled drawing'}</div><div class="wall-by">by ${m.name||'Anonymous Human'}${d?' · '+d:''}</div></div>
+        </div>`;
+      }).join('');
+    },err=>console.warn('memory wall error',err));
   }
-  window.deleteMemory=function(i){const m=JSON.parse(localStorage.getItem('soc_memories')||'[]');m.splice(i,1);localStorage.setItem('soc_memories',JSON.stringify(m));renderMemories();};
-  renderMemories();
+  subscribeMemoryWall();
 }
 
 // WORLD CREATOR MAP — driven by live approved submissions (see subscribeLiveCreators above)
