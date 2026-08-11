@@ -32,6 +32,8 @@ header p{font-family:'IM Fell English',serif;font-style:italic;font-size:16px;co
 .filters button{font-family:'Special Elite',cursive;font-size:10px;letter-spacing:1px;text-transform:uppercase;background:var(--aged);border:none;border-right:1px solid var(--border-ink);padding:10px 16px;cursor:pointer;color:var(--ink-faded);}
 .filters button:last-child{border-right:none;}
 .filters button.active{background:var(--ink);color:var(--aged);}
+.mood-filters{margin-top:0.6rem;border-color:var(--red-ink);opacity:0.9;}
+.mood-filters button.active{background:var(--red-ink);color:var(--aged);}
 .soul-btn{display:block;margin:1.5rem auto 0;font-family:'Special Elite',cursive;font-size:12px;letter-spacing:2px;text-transform:uppercase;background:var(--red-ink);color:var(--aged);border:none;padding:14px 28px;cursor:pointer;transition:transform 0.2s;}
 .soul-btn:hover{transform:scale(1.04);}
 
@@ -93,6 +95,17 @@ header p{font-family:'IM Fell English',serif;font-style:italic;font-size:16px;co
     <button data-cat="music">Music</button>
     <button data-cat="crafts">Crafts</button>
   </div>
+  <div class="filters mood-filters" id="moodFilters">
+    <button class="active" data-mood="all">Any Feeling</button>
+    <button data-mood="joy">😊 Joy</button>
+    <button data-mood="grief">💔 Grief</button>
+    <button data-mood="longing">🌙 Longing</button>
+    <button data-mood="pride">✦ Pride</button>
+    <button data-mood="peace">🕊️ Peace</button>
+    <button data-mood="wonder">✨ Wonder</button>
+    <button data-mood="nostalgia">📼 Nostalgia</button>
+    <button data-mood="hope">🌱 Hope</button>
+  </div>
   <button class="soul-btn" onclick="showRandomSoul()">🎲 Show Me One Soul</button>
 </header>
 
@@ -131,8 +144,9 @@ initializeAppCheck(app,{provider:new ReCaptchaV3Provider('6LcgcnYtAAAAACByp5DFgS
 const db=getFirestore(app);
 
 const CRAFT_ICON={Writing:'✍️',Art:'🎨',Poetry:'📖',Photography:'📸',Music:'🎵',Crafts:'🏺'};
+const MOOD_ICON={Joy:'😊',Grief:'💔',Longing:'🌙',Pride:'✦',Peace:'🕊️',Wonder:'✨',Nostalgia:'📼',Hope:'🌱'};
 const TRANSLATE_KEY='AIzaSyDfxD3VcYFZjwYj50fNpQLwZ9ynNLRQ488';
-let allWorks=[],activeFilter='all',gridShowingOriginal=false,gridTranslationCache={};
+let allWorks=[],activeFilter='all',activeMood='all',gridShowingOriginal=false,gridTranslationCache={};
 
 function formatCertDate(ts){
   if(!ts)return'';
@@ -143,7 +157,8 @@ function formatCertDate(ts){
 }
 function render(){
   const grid=document.getElementById('grid');
-  const list=activeFilter==='all'?allWorks:allWorks.filter(c=>(c.craft||'').toLowerCase()===activeFilter);
+  let list=activeFilter==='all'?allWorks:allWorks.filter(c=>(c.craft||'').toLowerCase()===activeFilter);
+  if(activeMood!=='all')list=list.filter(c=>(c.mood||'').toLowerCase()===activeMood);
   if(list.length===0){
     grid.innerHTML=`<div class="empty-state">
       <div class="icon">🌱</div>
@@ -157,7 +172,7 @@ function render(){
     <div class="card" onclick="openLightbox(${allWorks.indexOf(c)})">
       <div class="card-num">— ${String(i+1).padStart(3,'0')} —</div>
       ${c.image?`<img src="${c.image}" alt="${c.title||''}" loading="lazy"/>`:`<span class="card-icon">${CRAFT_ICON[c.craft]||'✦'}</span>`}
-      <div class="card-cat">${c.craft||''}${c.voiceNote?' · 🎙️ Voice intro':''}</div>
+      <div class="card-cat">${c.craft||''}${c.mood?' · '+(MOOD_ICON[c.mood]||'')+' '+c.mood:''}${c.voiceNote?' · 🎙️ Voice intro':''}</div>
       <div class="card-title" id="ct-${c.id}">${c.title||c.craft||'Human Work'}</div>
       <div class="card-creator">${c.name||'Anonymous'} · ${c.city||''}${c.city&&c.country?', ':''}${c.country||''}</div>
       <div class="card-desc" id="cd-${c.id}">${c.description||''}</div>
@@ -205,7 +220,8 @@ function applyGridTranslations(list,targetLang){
 window.toggleGridOriginal=function(){
   gridShowingOriginal=!gridShowingOriginal;
   const btn=document.getElementById('autoTranslateToggleBtn');
-  const list=activeFilter==='all'?allWorks:allWorks.filter(c=>(c.craft||'').toLowerCase()===activeFilter);
+  let list=activeFilter==='all'?allWorks:allWorks.filter(c=>(c.craft||'').toLowerCase()===activeFilter);
+  if(activeMood!=='all')list=list.filter(c=>(c.mood||'').toLowerCase()===activeMood);
   if(gridShowingOriginal){
     list.forEach(c=>{
       const tEl=document.getElementById('ct-'+c.id),dEl=document.getElementById('cd-'+c.id);
@@ -226,7 +242,7 @@ window.openLightbox=function(i){
   if(!c)return;
   lbCurrentWork=c;lbShowingTranslation=false;lbTranslationCache={};
   document.getElementById('lbTitle').textContent=c.title||c.craft||'Human Work';
-  document.getElementById('lbMeta').textContent=`${c.name||'Anonymous'} · ${c.city||''}${c.city&&c.country?', ':''}${c.country||''} · ${c.craft||''}`;
+  document.getElementById('lbMeta').textContent=`${c.name||'Anonymous'} · ${c.city||''}${c.city&&c.country?', ':''}${c.country||''} · ${c.craft||''}${c.mood?' · '+(MOOD_ICON[c.mood]||'')+' '+c.mood:''}`;
   document.getElementById('lbDesc').textContent=c.description||'';
   const impEl=document.getElementById('lbImperfection');
   if(impEl){if(c.imperfection){impEl.textContent='✦ Not perfect, kept anyway: "'+c.imperfection+'"';impEl.style.display='block';}else{impEl.style.display='none';}}
@@ -298,6 +314,14 @@ document.querySelectorAll('#filters button').forEach(btn=>{
     document.querySelectorAll('#filters button').forEach(b=>b.classList.remove('active'));
     btn.classList.add('active');
     activeFilter=btn.dataset.cat;
+    render();
+  });
+});
+document.querySelectorAll('#moodFilters button').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('#moodFilters button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    activeMood=btn.dataset.mood;
     render();
   });
 });
