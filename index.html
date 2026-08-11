@@ -38,6 +38,7 @@ initCounter();
 
 // ═══ LIVE CREATORS (real submissions, approved only) ═══
 const CRAFT_ICON={Writing:'✍️',Art:'🎨',Poetry:'📖',Photography:'📸',Music:'🎵',Crafts:'🏺'};
+const MOOD_ICON={Joy:'😊',Grief:'💔',Longing:'🌙',Pride:'✦',Peace:'🕊️',Wonder:'✨',Nostalgia:'📼',Hope:'🌱'};
 window.liveCreators=[];
 function formatCertDate(ts){
   if(!ts)return'';
@@ -53,7 +54,7 @@ function renderLiveGallery(){
     <div class="gal-item" data-cat="${(c.craft||'').toLowerCase()}" onclick="openWorkLightbox(${i})" style="cursor:pointer;">
       <div class="gal-num">— LIVE ${String(i+1).padStart(3,'0')} —</div>
       ${c.image?`<img src="${c.image}" alt="${c.title||''}" class="gal-thumb" loading="lazy"/>`:`<span class="gal-icon">${CRAFT_ICON[c.craft]||'✦'}</span>`}
-      <div class="gal-cat">${c.craft||''}${c.voiceNote?' · 🎙️ Voice intro':''}</div>
+      <div class="gal-cat">${c.craft||''}${c.mood?' · '+(MOOD_ICON[c.mood]||'')+' '+c.mood:''}${c.voiceNote?' · 🎙️ Voice intro':''}</div>
       <div class="gal-name">${c.title||c.craft||'Human Work'}</div>
       <div class="gal-creator">${c.name||'Anonymous'} · ${c.city||''}${c.city&&c.country?', ':''}${c.country||''}</div>
       <div class="gal-desc">${c.description||''}</div>
@@ -67,7 +68,7 @@ window.openWorkLightbox=function(i){
   if(!c)return;
   lbCurrentWork=c;lbShowingTranslation=false;lbTranslationCache={};
   document.getElementById('lbTitle').textContent=c.title||c.craft||'Human Work';
-  document.getElementById('lbMeta').textContent=`${c.name||'Anonymous'} · ${c.city||''}${c.city&&c.country?', ':''}${c.country||''} · ${c.craft||''}`;
+  document.getElementById('lbMeta').textContent=`${c.name||'Anonymous'} · ${c.city||''}${c.city&&c.country?', ':''}${c.country||''} · ${c.craft||''}${c.mood?' · '+(MOOD_ICON[c.mood]||'')+' '+c.mood:''}`;
   document.getElementById('lbDesc').textContent=c.description||'';
   const impEl=document.getElementById('lbImperfection');
   if(impEl){if(c.imperfection){impEl.textContent='✦ Not perfect, kept anyway: "'+c.imperfection+'"';impEl.style.display='block';}else{impEl.style.display='none';}}
@@ -189,6 +190,7 @@ window.submitCreatorWork=async function(){
   const city=document.getElementById('subCity').value.trim();
   const country=document.getElementById('subCountry').value.trim();
   const craft=document.getElementById('subCraft').value;
+  const mood=document.getElementById('subMood').value;
   const title=document.getElementById('subTitle').value.trim();
   const description=document.getElementById('subDesc').value.trim();
   const imperfection=document.getElementById('subImperfection').value.trim();
@@ -214,7 +216,8 @@ window.submitCreatorWork=async function(){
       voiceNote=await getDownloadURL(voiceRef);
     }
     btn.textContent='Submitting...';
-    await addDoc(collection(db,'creators'),{name,email,city,country,craft,title,description,imperfection,link,image,voiceNote,status:'pending',submittedAt:serverTimestamp()});
+    await addDoc(collection(db,'creators'),{name,email,city,country,craft,mood,title,description,imperfection,link,image,voiceNote,status:'pending',submittedAt:serverTimestamp()});
+    document.getElementById('subMood').value='';
     document.getElementById('subImperfection').value='';
     ['subName','subEmail','subCity','subCountry','subTitle','subDesc','subLink'].forEach(id=>document.getElementById(id).value='');
     document.getElementById('subCraft').value='';
@@ -1154,6 +1157,12 @@ footer{background:var(--ink2);border-top:4px double var(--red-ink);padding:2rem 
         <option value="">Craft — choose one*</option>
         <option>Writing</option><option>Art</option><option>Poetry</option>
         <option>Photography</option><option>Music</option><option>Crafts</option>
+      </select>
+      <select id="subMood" class="sub-input">
+        <option value="">What feeling made this? (optional)</option>
+        <option>Joy</option><option>Grief</option><option>Longing</option>
+        <option>Pride</option><option>Peace</option><option>Wonder</option>
+        <option>Nostalgia</option><option>Hope</option>
       </select>
       <input type="text" id="subTitle" class="sub-input" placeholder="Title of your work"/>
       <textarea id="subDesc" class="sub-input" placeholder="Tell us about it — what makes it yours*"></textarea>
