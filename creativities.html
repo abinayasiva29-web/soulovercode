@@ -32,6 +32,8 @@ header p{font-family:'IM Fell English',serif;font-style:italic;font-size:16px;co
 .filters button{font-family:'Special Elite',cursive;font-size:10px;letter-spacing:1px;text-transform:uppercase;background:var(--aged);border:none;border-right:1px solid var(--border-ink);padding:10px 16px;cursor:pointer;color:var(--ink-faded);}
 .filters button:last-child{border-right:none;}
 .filters button.active{background:var(--ink);color:var(--aged);}
+.soul-btn{display:block;margin:1.5rem auto 0;font-family:'Special Elite',cursive;font-size:12px;letter-spacing:2px;text-transform:uppercase;background:var(--red-ink);color:var(--aged);border:none;padding:14px 28px;cursor:pointer;transition:transform 0.2s;}
+.soul-btn:hover{transform:scale(1.04);}
 
 .wrap{max-width:1200px;margin:0 auto;padding:2rem;}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:0;border:1px solid var(--border-ink);}
@@ -68,6 +70,8 @@ header p{font-family:'IM Fell English',serif;font-style:italic;font-size:16px;co
 .lb-translate-btn{display:inline-block;font-family:'Special Elite',cursive;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--ink);background:transparent;border:1px solid var(--border-ink);padding:8px 14px;cursor:pointer;margin-right:8px;margin-bottom:14px;}
 .lb-translate-btn:hover{background:rgba(139,26,16,0.06);border-color:var(--red-ink);}
 .lb-translate-btn:disabled{opacity:0.5;cursor:default;}
+.lb-imperfection{font-family:'IM Fell English',serif;font-style:italic;font-size:14px;color:var(--ink-faded);border-left:2px solid #C99A52;padding-left:12px;margin-bottom:14px;}
+.lb-cert-date{font-family:'Special Elite',cursive;font-size:9px;letter-spacing:1px;color:var(--red-ink);margin-top:12px;opacity:0.75;}
 </style>
 <script>function googleTranslateElementInit(){new google.translate.TranslateElement({pageLanguage:'en',includedLanguages:'ta,hi,ar,ja,ko,zh-CN,fr,de,es,pt',autoDisplay:false},'gte');}</script>
 <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
@@ -89,6 +93,7 @@ header p{font-family:'IM Fell English',serif;font-style:italic;font-size:16px;co
     <button data-cat="music">Music</button>
     <button data-cat="crafts">Crafts</button>
   </div>
+  <button class="soul-btn" onclick="showRandomSoul()">🎲 Show Me One Soul</button>
 </header>
 
 <div class="wrap">
@@ -109,8 +114,10 @@ header p{font-family:'IM Fell English',serif;font-style:italic;font-size:16px;co
     <h3 id="lbTitle"></h3>
     <div class="lb-meta" id="lbMeta"></div>
     <div class="lb-desc" id="lbDesc"></div>
+    <div class="lb-imperfection" id="lbImperfection" style="display:none;"></div>
     <button id="lbTranslateBtn" onclick="toggleTranslate()" class="lb-translate-btn">🌐 Translate</button>
     <a id="lbLink" class="lb-link" href="#" target="_blank" rel="noopener" style="display:none;">View original work →</a>
+    <div class="lb-cert-date" id="lbCertDate"></div>
   </div>
 </div>
 
@@ -127,6 +134,13 @@ const CRAFT_ICON={Writing:'✍️',Art:'🎨',Poetry:'📖',Photography:'📸',M
 const TRANSLATE_KEY='AIzaSyDfxD3VcYFZjwYj50fNpQLwZ9ynNLRQ488';
 let allWorks=[],activeFilter='all',gridShowingOriginal=false,gridTranslationCache={};
 
+function formatCertDate(ts){
+  if(!ts)return'';
+  try{
+    const d=ts.toDate?ts.toDate():new Date(ts);
+    return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  }catch(e){return'';}
+}
 function render(){
   const grid=document.getElementById('grid');
   const list=activeFilter==='all'?allWorks:allWorks.filter(c=>(c.craft||'').toLowerCase()===activeFilter);
@@ -147,7 +161,7 @@ function render(){
       <div class="card-title" id="ct-${c.id}">${c.title||c.craft||'Human Work'}</div>
       <div class="card-creator">${c.name||'Anonymous'} · ${c.city||''}${c.city&&c.country?', ':''}${c.country||''}</div>
       <div class="card-desc" id="cd-${c.id}">${c.description||''}</div>
-      <div class="card-cert">🏃 Human Made Certified — click to view</div>
+      <div class="card-cert">🏃 Human Made Certified${formatCertDate(c.approvedAt)?' · '+formatCertDate(c.approvedAt):''} — click to view</div>
     </div>`).join('');
   autoTranslateGrid(list);
 }
@@ -214,6 +228,10 @@ window.openLightbox=function(i){
   document.getElementById('lbTitle').textContent=c.title||c.craft||'Human Work';
   document.getElementById('lbMeta').textContent=`${c.name||'Anonymous'} · ${c.city||''}${c.city&&c.country?', ':''}${c.country||''} · ${c.craft||''}`;
   document.getElementById('lbDesc').textContent=c.description||'';
+  const impEl=document.getElementById('lbImperfection');
+  if(impEl){if(c.imperfection){impEl.textContent='✦ Not perfect, kept anyway: "'+c.imperfection+'"';impEl.style.display='block';}else{impEl.style.display='none';}}
+  const certEl=document.getElementById('lbCertDate');
+  if(certEl){const d=formatCertDate(c.approvedAt);certEl.textContent=d?'🏃 Human Made Certified · '+d:'';}
   const imgEl=document.getElementById('lbImage');
   if(c.image){imgEl.src=c.image;imgEl.style.display='block';}else{imgEl.style.display='none';}
   const voiceEl=document.getElementById('lbVoice');
@@ -225,6 +243,13 @@ window.openLightbox=function(i){
   document.getElementById('lightbox').style.display='flex';
 };
 window.closeLightbox=function(){document.getElementById('lightbox').style.display='none';};
+window.showRandomSoul=function(){
+  if(!allWorks||allWorks.length===0){
+    return;
+  }
+  const idx=Math.floor(Math.random()*allWorks.length);
+  openLightbox(idx);
+};
 
 window.toggleTranslate=async function(){
   if(!lbCurrentWork)return;
