@@ -28,6 +28,13 @@ initCounter();
 // ═══ LIVE CREATORS (real submissions, approved only) ═══
 const CRAFT_ICON={Writing:'✍️',Art:'🎨',Poetry:'📖',Photography:'📸',Music:'🎵',Crafts:'🏺'};
 window.liveCreators=[];
+function formatCertDate(ts){
+  if(!ts)return'';
+  try{
+    const d=ts.toDate?ts.toDate():new Date(ts);
+    return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  }catch(e){return'';}
+}
 function renderLiveGallery(){
   const wrap=document.getElementById('liveGalleryItems');
   if(!wrap)return;
@@ -39,7 +46,7 @@ function renderLiveGallery(){
       <div class="gal-name">${c.title||c.craft||'Human Work'}</div>
       <div class="gal-creator">${c.name||'Anonymous'} · ${c.city||''}${c.city&&c.country?', ':''}${c.country||''}</div>
       <div class="gal-desc">${c.description||''}</div>
-      <div class="gal-cert">🏃 Human Made Certified — click to view</div>
+      <div class="gal-cert">🏃 Human Made Certified${formatCertDate(c.approvedAt)?' · '+formatCertDate(c.approvedAt):''} — click to view</div>
     </div>`).join('');
 }
 const TRANSLATE_KEY='AIzaSyDfxD3VcYFZjwYj50fNpQLwZ9ynNLRQ488';
@@ -51,6 +58,10 @@ window.openWorkLightbox=function(i){
   document.getElementById('lbTitle').textContent=c.title||c.craft||'Human Work';
   document.getElementById('lbMeta').textContent=`${c.name||'Anonymous'} · ${c.city||''}${c.city&&c.country?', ':''}${c.country||''} · ${c.craft||''}`;
   document.getElementById('lbDesc').textContent=c.description||'';
+  const impEl=document.getElementById('lbImperfection');
+  if(impEl){if(c.imperfection){impEl.textContent='✦ Not perfect, kept anyway: "'+c.imperfection+'"';impEl.style.display='block';}else{impEl.style.display='none';}}
+  const certEl=document.getElementById('lbCertDate');
+  if(certEl){const d=formatCertDate(c.approvedAt);certEl.textContent=d?'🏃 Human Made Certified · '+d:'';}
   const imgEl=document.getElementById('lbImage');
   if(c.image){imgEl.src=c.image;imgEl.style.display='block';}else{imgEl.style.display='none';}
   const voiceEl=document.getElementById('lbVoice');
@@ -103,6 +114,14 @@ window.toggleTranslate=async function(){
   btn.disabled=false;
 };
 window.closeLightbox=function(){document.getElementById('lightbox').style.display='none';};
+window.showRandomSoul=function(){
+  if(!window.liveCreators||window.liveCreators.length===0){
+    showToast('No souls to show yet — be the first to submit! 🌱');
+    return;
+  }
+  const idx=Math.floor(Math.random()*window.liveCreators.length);
+  openWorkLightbox(idx);
+};
 function subscribeLiveCreators(){
   const q=query(collection(db,'creators'),where('status','==','approved'),orderBy('approvedAt','desc'));
   onSnapshot(q,snap=>{
@@ -161,6 +180,7 @@ window.submitCreatorWork=async function(){
   const craft=document.getElementById('subCraft').value;
   const title=document.getElementById('subTitle').value.trim();
   const description=document.getElementById('subDesc').value.trim();
+  const imperfection=document.getElementById('subImperfection').value.trim();
   const link=document.getElementById('subLink').value.trim();
   const fileInput=document.getElementById('subImageFile');
   const file=fileInput.files[0];
@@ -183,7 +203,8 @@ window.submitCreatorWork=async function(){
       voiceNote=await getDownloadURL(voiceRef);
     }
     btn.textContent='Submitting...';
-    await addDoc(collection(db,'creators'),{name,email,city,country,craft,title,description,link,image,voiceNote,status:'pending',submittedAt:serverTimestamp()});
+    await addDoc(collection(db,'creators'),{name,email,city,country,craft,title,description,imperfection,link,image,voiceNote,status:'pending',submittedAt:serverTimestamp()});
+    document.getElementById('subImperfection').value='';
     ['subName','subEmail','subCity','subCountry','subTitle','subDesc','subLink'].forEach(id=>document.getElementById(id).value='');
     document.getElementById('subCraft').value='';
     fileInput.value='';
@@ -470,6 +491,8 @@ body::before{
 .lb-translate-btn{display:inline-block;font-family:'Special Elite',cursive;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--ink);background:transparent;border:1px solid var(--border-ink);padding:8px 14px;cursor:pointer;margin-right:8px;margin-bottom:14px;}
 .lb-translate-btn:hover{background:rgba(139,26,16,0.06);border-color:var(--red-ink);}
 .lb-translate-btn:disabled{opacity:0.5;cursor:default;}
+.lb-imperfection{font-family:'IM Fell English',serif;font-style:italic;font-size:14px;color:var(--ink-faded);border-left:2px solid var(--brass,#C99A52);padding-left:12px;margin-bottom:14px;}
+.lb-cert-date{font-family:'Special Elite',cursive;font-size:9px;letter-spacing:1px;color:var(--red-ink);margin-top:12px;opacity:0.75;}
 .gal-add{background:var(--aged);border:none;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:240px;cursor:pointer;transition:background 0.2s;border-right:none;border-bottom:none;}
 .gal-add:hover{background:var(--aged2);}
 .gal-add-plus{font-family:'Playfair Display',serif;font-size:2rem;color:var(--ink-light);margin-bottom:8px;}
@@ -485,6 +508,12 @@ body::before{
 
 /* ═══════════════════════════════════ WORLD MAP */
 .map-bg{background:var(--aged);}
+.soul-bg{background:var(--ink);color:var(--aged);text-align:center;padding:3.5rem 2rem;}
+.soul-bg .section-kicker{color:#C99A52;}
+.soul-bg .section-title{color:var(--aged);}
+.soul-intro{font-family:'IM Fell English',serif;font-style:italic;font-size:16px;color:rgba(242,232,213,0.7);max-width:34rem;margin:0 auto 1.75rem;}
+.soul-btn{font-family:'Special Elite',cursive;font-size:13px;letter-spacing:2px;text-transform:uppercase;background:var(--red-ink);color:var(--aged);border:none;padding:16px 34px;cursor:pointer;transition:transform 0.2s;}
+.soul-btn:hover{transform:scale(1.04);}
 .map-stats{display:flex;justify-content:center;gap:2.5rem;margin-bottom:1.25rem;flex-wrap:wrap;}
 .map-stat{text-align:center;}
 .map-stat .map-stat-num{font-family:'Playfair Display',serif;font-weight:900;font-size:1.9rem;color:var(--ink);line-height:1;display:block;}
@@ -974,6 +1003,16 @@ footer{background:var(--ink2);border-top:4px double var(--red-ink);padding:2rem 
   </div>
 </div>
 
+<!-- ═══ RANDOM SOUL ═══ -->
+<section class="gazette-section soul-bg" id="randomsoul">
+  <div class="section-masthead">
+    <div class="section-kicker">No Feed, No Algorithm</div>
+    <h2 class="section-title">Show Me One Soul</h2>
+  </div>
+  <p class="soul-intro">No scrolling, no ranking, no engagement games. Just one real person's work, chosen at random, given a real moment of your attention.</p>
+  <button class="soul-btn" onclick="showRandomSoul()">🎲 Show Me One Soul</button>
+</section>
+
 <!-- ═══ SKILLS ═══ -->
 <section class="gazette-section skills-bg">
   <div class="section-masthead">
@@ -1083,6 +1122,7 @@ footer{background:var(--ink2);border-top:4px double var(--red-ink);padding:2rem 
       </select>
       <input type="text" id="subTitle" class="sub-input" placeholder="Title of your work"/>
       <textarea id="subDesc" class="sub-input" placeholder="Tell us about it — what makes it yours*"></textarea>
+      <textarea id="subImperfection" class="sub-input" placeholder="Optional: one thing about this that isn't perfect — and why you kept it anyway"></textarea>
       <input type="url" id="subLink" class="sub-input" placeholder="Link to your work (optional — Instagram, LinkedIn, portfolio)"/>
       <label class="sub-file-label" for="subImageFile">📷 Upload a photo of your artwork (optional)</label>
       <input type="file" id="subImageFile" accept="image/*" class="sub-input"/>
@@ -1404,8 +1444,10 @@ document.querySelectorAll('.gal-item,.skill-item,.why-item,.sub-step').forEach(e
     <h3 id="lbTitle"></h3>
     <div class="lb-meta" id="lbMeta"></div>
     <div class="lb-desc" id="lbDesc"></div>
+    <div class="lb-imperfection" id="lbImperfection" style="display:none;"></div>
     <button id="lbTranslateBtn" onclick="toggleTranslate()" class="lb-translate-btn">🌐 Translate</button>
     <a id="lbLink" class="lb-link" href="#" target="_blank" rel="noopener">View original work →</a>
+    <div class="lb-cert-date" id="lbCertDate"></div>
   </div>
 </div>
 
