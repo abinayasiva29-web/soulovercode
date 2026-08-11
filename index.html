@@ -1379,6 +1379,7 @@ if(canvas){
   };
   window.clearCanvas=function(){ctx.clearRect(0,0,canvas.width,canvas.height);};
   window.saveDrawing=async function(){
+    if(!window.fbDb){showToast('Still loading — please wait a second and try again.');return;}
     const name=document.getElementById('drawingName').value.trim()||'Anonymous Human';
     const title=document.getElementById('drawingTitle').value.trim()||'Untitled drawing';
     const saveBtn=document.querySelector('.wb-save-btn');
@@ -1420,7 +1421,13 @@ if(canvas){
       }).join('');
     },err=>console.warn('memory wall error',err));
   }
-  subscribeMemoryWall();
+  function whenFirebaseReady(cb,triesLeft){
+    triesLeft=triesLeft===undefined?100:triesLeft;
+    if(window.fbDb&&window.fbCollection&&window.fbOnSnapshot){cb();return;}
+    if(triesLeft<=0){console.warn('Firebase never became ready for Memory Wall.');return;}
+    setTimeout(()=>whenFirebaseReady(cb,triesLeft-1),50);
+  }
+  whenFirebaseReady(subscribeMemoryWall);
 }
 
 // WORLD CREATOR MAP — driven by live approved submissions (see subscribeLiveCreators above)
