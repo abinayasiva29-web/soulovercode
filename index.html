@@ -217,6 +217,11 @@ window.submitCreatorWork=async function(){
     }
     btn.textContent='Submitting...';
     await addDoc(collection(db,'creators'),{name,email,city,country,craft,mood,title,description,imperfection,link,image,voiceNote,status:'pending',submittedAt:serverTimestamp()});
+    emailjs.send('service_9014kid','7z5k4mr',{
+      to_email:'abinayasiva29@gmail.com',
+      name:name,city:city,country:country,craft:craft,
+      mood:mood||'—',title:title||craft,description:description
+    }).catch(err=>console.warn('notification email failed (submission still saved fine):',err));
     document.getElementById('subMood').value='';
     document.getElementById('subImperfection').value='';
     ['subName','subEmail','subCity','subCountry','subTitle','subDesc','subLink'].forEach(id=>document.getElementById(id).value='');
