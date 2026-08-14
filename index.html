@@ -217,7 +217,7 @@ window.submitCreatorWork=async function(){
     }
     btn.textContent='Submitting...';
     await addDoc(collection(db,'creators'),{name,email,city,country,craft,mood,title,description,imperfection,link,image,voiceNote,status:'pending',submittedAt:serverTimestamp()});
-    emailjs.send('service_9014kid','b7d9h1b',{
+    emailjs.send('service_9014kid','7z5k4mr',{
       to_email:'abinayasiva29@gmail.com',
       name:name,city:city,country:country,craft:craft,
       mood:mood||'—',title:title||craft,description:description
@@ -255,7 +255,7 @@ window.joinMovement=async function(){
     await updateDoc(doc(db,'community','counter'),{count:increment(1)});
     const fd=new FormData();fd.append('email',email);fd.append('type','Join Movement');
     await fetch('https://formspree.io/f/mykaozyl',{method:'POST',body:fd,headers:{'Accept':'application/json'}});
-    await emailjs.send('service_9014kid','7z5k4mr',{to_email:email,from_name:'Abinaya — Soul Over Code',reply_to:'abinayasiva29@gmail.com'});
+    await emailjs.send('service_9014kid','b7d9h1b',{to_email:email,from_name:'Abinaya — Soul Over Code',reply_to:'abinayasiva29@gmail.com'});
     document.getElementById('joinEmail').value='';
     showToast('Welcome to Soul Over Code! Check your email. 🏃✦');
   }catch(e){showToast('Something went wrong. Please try again!');}
@@ -270,7 +270,7 @@ window.downloadBadge=async function(){
     await updateDoc(doc(db,'community','counter'),{count:increment(1)});
     const fd=new FormData();fd.append('email',email);fd.append('type','Badge Download');
     await fetch('https://formspree.io/f/mykaozyl',{method:'POST',body:fd,headers:{'Accept':'application/json'}});
-    await emailjs.send('service_9014kid','7z5k4mr',{to_email:email,from_name:'Abinaya — Soul Over Code',reply_to:'abinayasiva29@gmail.com'});
+    await emailjs.send('service_9014kid','b7d9h1b',{to_email:email,from_name:'Abinaya — Soul Over Code',reply_to:'abinayasiva29@gmail.com'});
     closeModal();
     const a=document.createElement('a');
     a.href='data:text/plain;charset=utf-8,SOUL OVER CODE — HUMAN MADE BADGE\n\nOwner: '+email+'\nCertified: '+new Date().toLocaleDateString()+'\nsoulovercode.com\n"AI can generate. Only humans can mean it."';
