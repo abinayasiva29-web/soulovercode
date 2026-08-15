@@ -458,6 +458,7 @@ body::before{
 .wall-meta{text-align:center;}
 .wall-title{font-family:'Playfair Display',serif;font-weight:700;font-size:0.9rem;margin-bottom:2px;}
 .wall-by{font-family:'IM Fell English',serif;font-style:italic;font-size:11px;color:var(--ink-faded);}
+.wall-when{font-family:'Special Elite',cursive;font-size:9px;letter-spacing:0.5px;color:#8B1A10;margin-top:3px;}
 #memoriesBox{display:flex;flex-direction:column;gap:8px;max-height:420px;overflow-y:auto;}
 .mem-item{border:1.5px solid var(--border-ink);}
 .mem-item img{width:100%;display:block;border-bottom:1px solid var(--border-ink);filter:sepia(10%);}
@@ -893,12 +894,24 @@ footer{background:var(--ink2);border-top:4px double var(--red-ink);padding:2rem 
 <!-- ═══ WHITEBOARD — MEMORY BOX ═══ -->
 <section class="gazette-section" id="whiteboard" style="background:var(--aged);">
   <div class="section-masthead">
-    <div class="section-kicker">Special Feature</div>
-    <h2 class="section-title">The Human Memory Box — Draw What You See, Save It Forever</h2>
-    <p style="font-family:'IM Fell English',serif;font-size:15px;color:var(--ink-faded);margin-top:10px;font-style:italic;">Draw digitally what you see in front of you right now. Save it with your name and date. Return anytime to find your memories here. No AI. Just you and what you saw.</p>
+    <div class="section-kicker">Special Feature — What AI Cannot Do</div>
+    <h2 class="section-title">Proof Someone Was Actually Here</h2>
+    <p style="font-family:'IM Fell English',serif;font-size:15px;color:var(--ink-faded);margin-top:10px;font-style:italic;">AI has no eyes and no clock. It cannot be interrupted, and it cannot look up. What follows below is not a drawing contest — it's a record. A human, in a specific place, at a specific minute, stopped what they were doing and paid enough attention to something ordinary that no one would ever think to invent it. That attention is the whole point. This exact arrangement of light and object will never happen again — and someone was here to see it.</p>
   </div>
   <div class="wb-layout">
     <div>
+      <div class="wb-step-label">Step 1 — Photograph what you're about to draw*</div>
+      <div class="wb-camera-block">
+        <video id="wbCameraVideo" autoplay playsinline muted style="display:none;"></video>
+        <img id="wbCameraPreview" style="display:none;" alt="Captured reference photo"/>
+        <div class="wb-camera-empty" id="wbCameraEmpty">No photo taken yet</div>
+        <div class="wb-camera-controls">
+          <button type="button" onclick="openCamera()" id="wbCameraOpenBtn" class="wb-btn">📷 Open Camera</button>
+          <button type="button" onclick="capturePhoto()" id="wbCameraCaptureBtn" class="wb-btn" style="display:none;">📸 Capture</button>
+          <button type="button" onclick="retakePhoto()" id="wbCameraRetakeBtn" class="wb-btn" style="display:none;">🔄 Retake</button>
+        </div>
+      </div>
+      <div class="wb-step-label" style="margin-top:16px;">Step 2 — Draw it by hand, from memory or by looking at it*</div>
       <div class="wb-tools">
         <span class="wb-label">Ink colour:</span>
         <input type="color" id="brushColor" value="#1A1208" style="width:32px;height:32px;border:1.5px solid var(--ink);cursor:pointer;padding:2px;background:var(--aged);">
@@ -910,16 +923,19 @@ footer{background:var(--ink2);border-top:4px double var(--red-ink);padding:2rem 
       </div>
       <canvas id="humanCanvas" width="700" height="380"></canvas>
       <div class="wb-inputs">
-        <input type="text" id="drawingName" class="wb-input" placeholder="Your name...">
-        <input type="text" id="drawingTitle" class="wb-input" placeholder="What are you drawing? (optional)">
-        <button onclick="saveDrawing()" class="wb-save-btn">Save to Memory Box →</button>
+        <input type="text" id="drawingName" class="wb-input" placeholder="Your name*">
+        <input type="text" id="drawingPlace" class="wb-input" placeholder="Where are you right now? (city)*">
+        <input type="text" id="drawingTitle" class="wb-input" placeholder="What are you actually looking at?*">
+        <button onclick="saveDrawing()" class="wb-save-btn">Record This Moment →</button>
       </div>
+      <p style="font-family:'Special Elite',cursive;font-size:10px;color:var(--ink-light);margin-top:8px;">Photo, drawing, name, place, and description are all required. This is a matched pair — what you actually saw, and what you drew from it.</p>
+      <p style="font-family:'Special Elite',cursive;font-size:10px;color:var(--ink-light);margin-top:8px;">All three are required. This isn't a scratchpad — it's a timestamped record that a human, somewhere, was paying attention. An empty field breaks the claim.</p>
     </div>
     <div>
-      <div class="memories-col-head">Your Drawing Joins Everyone's</div>
+      <div class="memories-col-head">This Becomes A Public Record</div>
       <div class="wb-shared-note">
-        <div class="wb-shared-count"><span id="memoryWallCount">0</span> memories shared so far</div>
-        <p>Every drawing you save here becomes part of <strong>The World's Sketchbook</strong> below — visible to everyone who visits Soul Over Code, not just you.</p>
+        <div class="wb-shared-count"><span id="memoryWallCount">0</span> recorded moments so far</div>
+        <p>Your name, your city, what you were looking at, and the exact minute you looked — all of it joins <strong>The World's Sketchbook</strong> below, permanently, visible to anyone who visits Soul Over Code.</p>
       </div>
     </div>
   </div>
@@ -928,12 +944,12 @@ footer{background:var(--ink2);border-top:4px double var(--red-ink);padding:2rem 
 <!-- ═══ THE WORLD'S SKETCHBOOK ═══ -->
 <section class="gazette-section sketchbook-bg" id="sketchbook">
   <div class="section-masthead">
-    <div class="section-kicker">A Wall Made By Strangers</div>
+    <div class="section-kicker">A Live Record Of Real Observation</div>
     <h2 class="section-title">The World's Sketchbook</h2>
-    <p style="font-family:'IM Fell English',serif;font-size:15px;color:var(--ink-faded);margin-top:10px;font-style:italic;">Every drawing on this page was made by someone real, right now, somewhere in the world. No two the same — because no two humans are.</p>
+    <p style="font-family:'IM Fell English',serif;font-size:15px;color:var(--ink-faded);margin-top:10px;font-style:italic;">Every entry below names a real person, a real place, and the exact minute they stopped to look at something. Not a prompt. Not a generation. A timestamped record that a human was paying attention, somewhere in the world, right now.</p>
   </div>
   <div id="memoryWall" class="memory-wall">
-    <div class="wb-empty">No memories yet — be the first to draw something real.</div>
+    <div class="wb-empty">No records yet — be the first human to prove you were here.</div>
   </div>
 </section>
 
@@ -1374,7 +1390,7 @@ if(canvas){
     if(e.touches)return{x:(e.touches[0].clientX-r.left)*sx,y:(e.touches[0].clientY-r.top)*sy};
     return{x:(e.clientX-r.left)*sx,y:(e.clientY-r.top)*sy};
   }
-  function startDraw(e){e.preventDefault();drawing=true;const p=getPos(e);lastX=p.x;lastY=p.y;}
+  function startDraw(e){e.preventDefault();drawing=true;window.hasDrawnStroke=true;const p=getPos(e);lastX=p.x;lastY=p.y;}
   function draw(e){
     e.preventDefault();if(!drawing)return;
     const p=getPos(e);
@@ -1391,11 +1407,16 @@ if(canvas){
     document.getElementById('btnPen').classList.toggle('active',t==='pen');
     document.getElementById('btnEraser').classList.toggle('active',t==='eraser');
   };
-  window.clearCanvas=function(){ctx.clearRect(0,0,canvas.width,canvas.height);};
+  window.clearCanvas=function(){ctx.clearRect(0,0,canvas.width,canvas.height);window.hasDrawnStroke=false;};
   window.saveDrawing=async function(){
     if(!window.fbDb){showToast('Still loading — please wait a second and try again.');return;}
-    const name=document.getElementById('drawingName').value.trim()||'Anonymous Human';
-    const title=document.getElementById('drawingTitle').value.trim()||'Untitled drawing';
+    const name=document.getElementById('drawingName').value.trim();
+    const place=document.getElementById('drawingPlace').value.trim();
+    const title=document.getElementById('drawingTitle').value.trim();
+    if(!name){showToast('Please add your name — this only means something if we know it was you.');return;}
+    if(!place){showToast('Where are you? This is a record of a real place, not nowhere.');return;}
+    if(!title){showToast('Tell us what you\'re looking at right now — that\'s the whole point.');return;}
+    if(!window.hasDrawnStroke){showToast('The canvas is empty — draw what\'s actually in front of you first.');return;}
     const saveBtn=document.querySelector('.wb-save-btn');
     const originalBtnText=saveBtn.textContent;
     saveBtn.textContent='Saving...';saveBtn.disabled=true;
@@ -1404,10 +1425,12 @@ if(canvas){
       const fileRef=window.fbRef(window.fbStorage,'memories/'+Date.now()+'_drawing.png');
       await window.fbUploadBytes(fileRef,blob);
       const imgUrl=await window.fbGetDownloadURL(fileRef);
-      await window.fbAddDoc(window.fbCollection(window.fbDb,'memories'),{name,title,image:imgUrl,createdAt:window.fbServerTimestamp()});
-      showToast('Added to The World\'s Sketchbook — thank you! ✦');
+      await window.fbAddDoc(window.fbCollection(window.fbDb,'memories'),{name,place,title,image:imgUrl,createdAt:window.fbServerTimestamp()});
+      showToast('Recorded. A real moment, held. ✦');
       ctx.clearRect(0,0,canvas.width,canvas.height);
+      window.hasDrawnStroke=false;
       document.getElementById('drawingTitle').value='';
+      document.getElementById('drawingPlace').value='';
     }catch(e){
       showToast('Something went wrong saving your drawing. Please try again!');
       console.error(e);
@@ -1423,14 +1446,18 @@ if(canvas){
       const items=snap.docs.map(d=>d.data());
       if(countEl)countEl.textContent=items.length;
       if(items.length===0){
-        wallEl.innerHTML='<div class="wb-empty">No memories yet — be the first to draw something real.</div>';
+        wallEl.innerHTML='<div class="wb-empty">No records yet — be the first human to prove you were here.</div>';
         return;
       }
       wallEl.innerHTML=items.map(m=>{
-        const d=m.createdAt&&m.createdAt.toDate?m.createdAt.toDate().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'}):'';
+        let when='';
+        if(m.createdAt&&m.createdAt.toDate){
+          const dt=m.createdAt.toDate();
+          when=dt.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})+' · '+dt.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+        }
         return `<div class="wall-item">
           <img src="${m.image}" alt="${m.title||'drawing'}" loading="lazy"/>
-          <div class="wall-meta"><div class="wall-title">${m.title||'Untitled drawing'}</div><div class="wall-by">by ${m.name||'Anonymous Human'}${d?' · '+d:''}</div></div>
+          <div class="wall-meta"><div class="wall-title">${m.title}</div><div class="wall-by">${m.name}${m.place?' · '+m.place:''}</div><div class="wall-when">${when}</div></div>
         </div>`;
       }).join('');
     },err=>console.warn('memory wall error',err));
