@@ -436,6 +436,11 @@ body::before{
 /* ═══════════════════════════════════ WHITEBOARD */
 .wb-layout{display:grid;grid-template-columns:1fr 280px;gap:2rem;}
 .wb-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px;}
+.wb-step-label{font-family:'Special Elite',cursive;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--red-ink);margin-bottom:8px;}
+.wb-camera-block{border:1px solid var(--border-ink);background:rgba(26,18,8,0.03);padding:12px;}
+.wb-camera-block video,.wb-camera-block img{width:100%;max-height:280px;object-fit:contain;background:#000;display:block;margin-bottom:10px;}
+.wb-camera-empty{font-family:'IM Fell English',serif;font-style:italic;font-size:13px;color:var(--ink-light);text-align:center;padding:2rem 0;}
+.wb-camera-controls{display:flex;gap:8px;}
 .wb-label{font-family:'Special Elite',cursive;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--ink-faded);}
 .wb-btn{font-family:'Special Elite',cursive;font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:6px 12px;border:1.5px solid var(--ink);background:var(--aged);color:var(--ink);cursor:pointer;transition:all 0.15s;box-shadow:2px 2px 0 var(--border-ink);}
 .wb-btn:hover,.wb-btn.active{background:var(--ink);color:var(--aged);}
@@ -1408,11 +1413,94 @@ if(canvas){
     document.getElementById('btnEraser').classList.toggle('active',t==='eraser');
   };
   window.clearCanvas=function(){ctx.clearRect(0,0,canvas.width,canvas.height);window.hasDrawnStroke=false;};
+
+  let cameraStream=null,capturedPhotoImg=null;
+  window.openCamera=async function(){
+    let stream;
+    try{
+      stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
+    }catch(e){
+      try{
+        stream=await navigator.mediaDevices.getUserMedia({video:true});
+      }catch(e2){
+        showToast('Could not access your camera — check your browser permissions and try again.');
+        return;
+      }
+    }
+    cameraStream=stream;
+    const video=document.getElementById('wbCameraVideo');
+    video.srcObject=cameraStream;
+    video.style.display='block';
+    document.getElementById('wbCameraPreview').style.display='none';
+    document.getElementById('wbCameraEmpty').style.display='none';
+    document.getElementById('wbCameraOpenBtn').style.display='none';
+    document.getElementById('wbCameraCaptureBtn').style.display='inline-block';
+    document.getElementById('wbCameraRetakeBtn').style.display='none';
+  };
+  window.capturePhoto=function(){
+    const video=document.getElementById('wbCameraVideo');
+    if(!video.videoWidth){showToast('Camera still starting up — wait a moment and try again.');return;}
+    const tmpCanvas=document.createElement('canvas');
+    tmpCanvas.width=video.videoWidth;tmpCanvas.height=video.videoHeight;
+    tmpCanvas.getContext('2d').drawImage(video,0,0);
+    const dataUrl=tmpCanvas.toDataURL('image/png');
+    capturedPhotoImg=new Image();
+    capturedPhotoImg.src=dataUrl;
+    const preview=document.getElementById('wbCameraPreview');
+    preview.src=dataUrl;preview.style.display='block';
+    video.style.display='none';
+    document.getElementById('wbCameraEmpty').style.display='none';
+    if(cameraStream){cameraStream.getTracks().forEach(t=>t.stop());cameraStream=null;}
+    document.getElementById('wbCameraCaptureBtn').style.display='none';
+    document.getElementById('wbCameraOpenBtn').style.display='none';
+    document.getElementById('wbCameraRetakeBtn').style.display='inline-block';
+  };
+  window.retakePhoto=function(){
+    capturedPhotoImg=null;
+    document.getElementById('wbCameraPreview').style.display='none';
+    document.getElementById('wbCameraRetakeBtn').style.display='none';
+    openCamera();
+  };
+  function buildCollage(){
+    return new Promise(resolve=>{
+      const finish=()=>{
+        const targetH=380,gap=14,labelH=30;
+        const photoW=capturedPhotoImg.width*(targetH/capturedPhotoImg.height);
+        const collage=document.createElement('canvas');
+        collage.width=photoW+gap+canvas.width;
+        collage.height=targetH+labelH;
+        const cx=collage.getContext('2d');
+        cx.fillStyle='#F2E8D5';cx.fillRect(0,0,collage.width,collage.height);
+        cx.fillStyle='#1A1208';cx.font='bold 13px Georgia, serif';cx.textAlign='center';
+        cx.fillText('WHAT I SAW',photoW/2,20);
+        cx.fillText('WHAT I DREW',photoW+gap+canvas.width/2,20);
+        cx.drawImage(capturedPhotoImg,0,labelH,photoW,targetH);
+        cx.drawImage(canvas,photoW+gap,labelH,canvas.width,targetH);
+        cx.strokeStyle='#8B1A10';cx.lineWidth=1;
+        cx.beginPath();cx.moveTo(photoW+gap/2,labelH);cx.lineTo(photoW+gap/2,collage.height);cx.stroke();
+        collage.toBlob(blob=>resolve(blob),'image/png');
+      };
+      if(capturedPhotoImg.complete&&capturedPhotoImg.naturalWidth)finish();
+      else capturedPhotoImg.onload=finish;
+    });
+  }
+  function resetCameraUI(){
+    capturedPhotoImg=null;
+    if(cameraStream){cameraStream.getTracks().forEach(t=>t.stop());cameraStream=null;}
+    document.getElementById('wbCameraVideo').style.display='none';
+    document.getElementById('wbCameraPreview').style.display='none';
+    document.getElementById('wbCameraEmpty').style.display='block';
+    document.getElementById('wbCameraOpenBtn').style.display='inline-block';
+    document.getElementById('wbCameraCaptureBtn').style.display='none';
+    document.getElementById('wbCameraRetakeBtn').style.display='none';
+  }
+
   window.saveDrawing=async function(){
     if(!window.fbDb){showToast('Still loading — please wait a second and try again.');return;}
     const name=document.getElementById('drawingName').value.trim();
     const place=document.getElementById('drawingPlace').value.trim();
     const title=document.getElementById('drawingTitle').value.trim();
+    if(!capturedPhotoImg){showToast('Photograph what you\'re about to draw first — that\'s the proof.');return;}
     if(!name){showToast('Please add your name — this only means something if we know it was you.');return;}
     if(!place){showToast('Where are you? This is a record of a real place, not nowhere.');return;}
     if(!title){showToast('Tell us what you\'re looking at right now — that\'s the whole point.');return;}
@@ -1421,8 +1509,8 @@ if(canvas){
     const originalBtnText=saveBtn.textContent;
     saveBtn.textContent='Saving...';saveBtn.disabled=true;
     try{
-      const blob=await new Promise(res=>canvas.toBlob(res,'image/png'));
-      const fileRef=window.fbRef(window.fbStorage,'memories/'+Date.now()+'_drawing.png');
+      const blob=await buildCollage();
+      const fileRef=window.fbRef(window.fbStorage,'memories/'+Date.now()+'_record.png');
       await window.fbUploadBytes(fileRef,blob);
       const imgUrl=await window.fbGetDownloadURL(fileRef);
       await window.fbAddDoc(window.fbCollection(window.fbDb,'memories'),{name,place,title,image:imgUrl,createdAt:window.fbServerTimestamp()});
@@ -1431,6 +1519,7 @@ if(canvas){
       window.hasDrawnStroke=false;
       document.getElementById('drawingTitle').value='';
       document.getElementById('drawingPlace').value='';
+      resetCameraUI();
     }catch(e){
       showToast('Something went wrong saving your drawing. Please try again!');
       console.error(e);
