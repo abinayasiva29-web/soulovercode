@@ -58,6 +58,7 @@ function renderLiveGallery(){
       <div class="gal-name">${c.title||c.craft||'Human Work'}</div>
       <div class="gal-creator">${c.name||'Anonymous'} · ${c.city||''}${c.city&&c.country?', ':''}${c.country||''}</div>
       <div class="gal-desc">${c.description||''}</div>
+      ${c.pulse&&c.pulse.length>2?`<div class="pulse-box pulse-inline"><div class="pulse-label">♥ Human Pulse</div><svg viewBox="0 0 300 32" class="pulse-svg"><polyline points="${pulseIntervalsToPoints(c.pulse,300,32)}" /></svg></div>`:''}
       <div class="gal-cert">🏃 Human Made Certified${formatCertDate(c.approvedAt)?' · '+formatCertDate(c.approvedAt):''} — click to view</div>
     </div>`).join('');
 }
@@ -72,6 +73,13 @@ window.openWorkLightbox=function(i){
   document.getElementById('lbDesc').textContent=c.description||'';
   const impEl=document.getElementById('lbImperfection');
   if(impEl){if(c.imperfection){impEl.textContent='✦ Not perfect, kept anyway: "'+c.imperfection+'"';impEl.style.display='block';}else{impEl.style.display='none';}}
+  const pulseBox=document.getElementById('lbPulseBox');
+  if(pulseBox){
+    if(c.pulse&&c.pulse.length>2){
+      pulseBox.style.display='block';
+      pulseBox.querySelector('polyline').setAttribute('points',pulseIntervalsToPoints(c.pulse,560,44));
+    }else{pulseBox.style.display='none';}
+  }
   const certEl=document.getElementById('lbCertDate');
   if(certEl){const d=formatCertDate(c.approvedAt);certEl.textContent=d?'🏃 Human Made Certified · '+d:'';}
   const imgEl=document.getElementById('lbImage');
@@ -184,6 +192,52 @@ window.toggleVoiceRecording=async function(){
     if(voiceSeconds>=20)voiceRecorder.stop();
   },1000);
 };
+let pulseTimestamps=[],pulseHasPasted=false;
+function pulseIntervalsToPoints(intervals,w,h){
+  if(!intervals||intervals.length===0)return'';
+  const cap=700,mid=h/2;
+  const step=intervals.length>1?w/(intervals.length-1):w;
+  return intervals.map((iv,i)=>{
+    const norm=1-Math.min(iv,cap)/cap;
+    const y=mid-(norm*(h*0.42))*(i%2===0?1:-1)-(norm*2);
+    return `${(i*step).toFixed(1)},${y.toFixed(1)}`;
+  }).join(' ');
+}
+function renderLivePulse(){
+  const svg=document.getElementById('pulseSvgLive');
+  if(!svg)return;
+  const poly=svg.querySelector('polyline');
+  poly.setAttribute('points',pulseIntervalsToPoints(pulseTimestamps,600,50));
+}
+function attachPulseTracking(){
+  const el=document.getElementById('subDesc');
+  if(!el||el._pulseAttached)return;
+  el._pulseAttached=true;
+  let lastT=null;
+  el.addEventListener('keydown',e=>{
+    if(e.key.length>1&&!['Backspace','Enter',' '].includes(e.key))return;
+    const now=Date.now();
+    if(lastT!==null)pulseTimestamps.push(now-lastT);
+    lastT=now;
+    if(pulseTimestamps.length>80)pulseTimestamps.shift();
+    renderLivePulse();
+  });
+  el.addEventListener('paste',()=>{
+    setTimeout(()=>{
+      if(el.value.trim().length>15&&pulseTimestamps.length<3)pulseHasPasted=true;
+    },10);
+  });
+}
+function resetPulseTracking(){
+  pulseTimestamps=[];pulseHasPasted=false;
+  const el=document.getElementById('subDesc');
+  if(el)el._pulseAttached=false;
+  const svg=document.getElementById('pulseSvgLive');
+  if(svg)svg.querySelector('polyline').setAttribute('points','');
+}
+document.addEventListener('DOMContentLoaded',attachPulseTracking);
+setTimeout(attachPulseTracking,500);
+
 window.submitCreatorWork=async function(){
   const name=document.getElementById('subName').value.trim();
   const email=document.getElementById('subEmail').value.trim();
@@ -198,6 +252,7 @@ window.submitCreatorWork=async function(){
   const fileInput=document.getElementById('subImageFile');
   const file=fileInput.files[0];
   if(!name||!city||!country||!craft||!description){showToast('Please fill in name, city, country, craft and a short description!');return;}
+  if(pulseHasPasted){showToast('This description looks pasted in — please write it yourself so your Human Pulse is real.');return;}
   if(file&&file.size>8*1024*1024){showToast('Image is too large — please use a photo under 8MB.');return;}
   const btn=document.getElementById('subSubmitBtn');btn.disabled=true;
   try{
@@ -216,7 +271,7 @@ window.submitCreatorWork=async function(){
       voiceNote=await getDownloadURL(voiceRef);
     }
     btn.textContent='Submitting...';
-    await addDoc(collection(db,'creators'),{name,email,city,country,craft,mood,title,description,imperfection,link,image,voiceNote,status:'pending',submittedAt:serverTimestamp()});
+    await addDoc(collection(db,'creators'),{name,email,city,country,craft,mood,title,description,imperfection,link,image,voiceNote,pulse:pulseTimestamps.slice(),status:'pending',submittedAt:serverTimestamp()});
     emailjs.send('service_9014kid','template_zr374rg',{
       to_email:'abinayasiva29@gmail.com',
       name:name,city:city,country:country,craft:craft,
@@ -231,6 +286,7 @@ window.submitCreatorWork=async function(){
     document.getElementById('subVoicePreview').style.display='none';
     document.getElementById('subVoiceRecordBtn').textContent='● Start recording';
     voiceBlob=null;
+    resetPulseTracking();
     showToast('Submitted! We\'ll review it and add you to the gallery and map soon. 🏃✦');
   }catch(e){showToast('Something went wrong. Please try again!');console.error(e);}
   btn.textContent='Submit your work — it\'s free';btn.disabled=false;
@@ -630,6 +686,14 @@ body::before{
 .sub-form-submit{width:100%;font-family:'Special Elite',cursive;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--aged);background:var(--red-ink);padding:14px;border:none;cursor:pointer;transition:opacity 0.2s;}
 .sub-form-submit:hover{opacity:0.85;}
 .sub-form-note{font-family:'Special Elite',cursive;font-size:9px;letter-spacing:1px;color:rgba(242,232,213,0.45);text-align:center;margin-top:10px;}
+.pulse-box{margin-bottom:14px;background:rgba(139,26,16,0.06);border:1px solid rgba(139,26,16,0.25);padding:8px 10px;}
+.pulse-label{font-family:'Special Elite',cursive;font-size:9px;letter-spacing:0.5px;text-transform:uppercase;color:#c99a52;margin-bottom:4px;}
+.pulse-svg{width:100%;height:44px;display:block;}
+.pulse-svg polyline{fill:none;stroke:#8B1A10;stroke-width:1.6;stroke-linejoin:round;stroke-linecap:round;}
+.pulse-inline{margin-top:8px;}
+.pulse-inline .pulse-label{color:var(--red-ink);opacity:0.75;}
+.pulse-inline .pulse-svg{height:32px;}
+.pulse-inline .pulse-svg polyline{stroke:var(--red-ink);}
 .sub-file-label{display:block;font-family:'Special Elite',cursive;font-size:11px;letter-spacing:0.5px;color:rgba(242,232,213,0.7);margin-bottom:6px;}
 .sub-form input[type="file"]{padding:8px;font-family:'Special Elite',cursive;font-size:11px;color:var(--ink-faded);}
 .sub-voice-box{display:flex;align-items:center;gap:12px;margin-bottom:6px;}
@@ -1193,6 +1257,10 @@ footer{background:var(--ink2);border-top:4px double var(--red-ink);padding:2rem 
       </select>
       <input type="text" id="subTitle" class="sub-input" placeholder="Title of your work"/>
       <textarea id="subDesc" class="sub-input" placeholder="Tell us about it — what makes it yours*"></textarea>
+      <div class="pulse-box">
+        <div class="pulse-label">♥ Your Human Pulse — the rhythm of you actually writing this, live</div>
+        <svg id="pulseSvgLive" viewBox="0 0 600 50" class="pulse-svg"><polyline points="" /></svg>
+      </div>
       <textarea id="subImperfection" class="sub-input" placeholder="Optional: one thing about this that isn't perfect — and why you kept it anyway"></textarea>
       <input type="url" id="subLink" class="sub-input" placeholder="Link to your work (optional — Instagram, LinkedIn, portfolio)"/>
       <label class="sub-file-label" for="subImageFile">📷 Upload a photo of your artwork (optional)</label>
@@ -1653,6 +1721,7 @@ document.querySelectorAll('.gal-item,.skill-item,.why-item,.sub-step').forEach(e
     <div class="lb-meta" id="lbMeta"></div>
     <div class="lb-desc" id="lbDesc"></div>
     <div class="lb-imperfection" id="lbImperfection" style="display:none;"></div>
+    <div id="lbPulseBox" class="pulse-box" style="display:none;"><div class="pulse-label">♥ Human Pulse — the rhythm of them writing this, live</div><svg viewBox="0 0 560 44" class="pulse-svg"><polyline points="" /></svg></div>
     <button id="lbTranslateBtn" onclick="toggleTranslate()" class="lb-translate-btn">🌐 Translate</button>
     <a id="lbLink" class="lb-link" href="#" target="_blank" rel="noopener">View original work →</a>
     <div class="lb-cert-date" id="lbCertDate"></div>
