@@ -341,7 +341,8 @@ body::before{
 .masthead-nav a{font-family:'Special Elite',cursive;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--ink-faded);text-decoration:none;padding:4px 16px;border-right:1px solid var(--border-ink);transition:all 0.15s;}
 .masthead-nav a:last-child{border-right:none;}
 .masthead-nav a:hover{color:var(--ink);background:rgba(26,18,8,0.05);}
-.masthead-cta{font-family:'Special Elite',cursive;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--aged);background:var(--ink);padding:4px 14px;text-decoration:none;margin-left:16px;border:1px solid var(--ink);}
+.masthead-nav a.masthead-cta{color:var(--ink);font-weight:bold;}
+.masthead-nav a.masthead-cta:hover{color:var(--ink);background:rgba(26,18,8,0.05);}
 
 /* ═══════════════════════════════════ FRONT PAGE */
 .front-page{padding:1.5rem 2.5rem;border-bottom:4px double var(--ink);}
@@ -1395,7 +1396,7 @@ if(canvas){
     if(e.touches)return{x:(e.touches[0].clientX-r.left)*sx,y:(e.touches[0].clientY-r.top)*sy};
     return{x:(e.clientX-r.left)*sx,y:(e.clientY-r.top)*sy};
   }
-  function startDraw(e){e.preventDefault();drawing=true;window.hasDrawnStroke=true;const p=getPos(e);lastX=p.x;lastY=p.y;}
+  function startDraw(e){e.preventDefault();drawing=true;if(!window.hasDrawnStroke)window.drawStartTime=Date.now();window.hasDrawnStroke=true;const p=getPos(e);lastX=p.x;lastY=p.y;}
   function draw(e){
     e.preventDefault();if(!drawing)return;
     const p=getPos(e);
@@ -1412,7 +1413,7 @@ if(canvas){
     document.getElementById('btnPen').classList.toggle('active',t==='pen');
     document.getElementById('btnEraser').classList.toggle('active',t==='eraser');
   };
-  window.clearCanvas=function(){ctx.clearRect(0,0,canvas.width,canvas.height);window.hasDrawnStroke=false;};
+  window.clearCanvas=function(){ctx.clearRect(0,0,canvas.width,canvas.height);window.hasDrawnStroke=false;window.drawStartTime=null;};
 
   let cameraStream=null,capturedPhotoImg=null;
   window.openCamera=async function(){
@@ -1461,14 +1462,18 @@ if(canvas){
     document.getElementById('wbCameraRetakeBtn').style.display='none';
     openCamera();
   };
-  function buildCollage(){
+  function formatDuration(sec){
+    const m=Math.floor(sec/60),s=sec%60;
+    return m>0?`${m}m ${s}s`:`${s}s`;
+  }
+  function buildCollage(durationSeconds){
     return new Promise(resolve=>{
       const finish=()=>{
-        const targetH=380,gap=14,labelH=30;
+        const targetH=380,gap=14,labelH=30,footerH=32;
         const photoW=capturedPhotoImg.width*(targetH/capturedPhotoImg.height);
         const collage=document.createElement('canvas');
         collage.width=photoW+gap+canvas.width;
-        collage.height=targetH+labelH;
+        collage.height=targetH+labelH+footerH;
         const cx=collage.getContext('2d');
         cx.fillStyle='#F2E8D5';cx.fillRect(0,0,collage.width,collage.height);
         cx.fillStyle='#1A1208';cx.font='bold 13px Georgia, serif';cx.textAlign='center';
@@ -1477,7 +1482,10 @@ if(canvas){
         cx.drawImage(capturedPhotoImg,0,labelH,photoW,targetH);
         cx.drawImage(canvas,photoW+gap,labelH,canvas.width,targetH);
         cx.strokeStyle='#8B1A10';cx.lineWidth=1;
-        cx.beginPath();cx.moveTo(photoW+gap/2,labelH);cx.lineTo(photoW+gap/2,collage.height);cx.stroke();
+        cx.beginPath();cx.moveTo(photoW+gap/2,labelH);cx.lineTo(photoW+gap/2,labelH+targetH);cx.stroke();
+        cx.fillStyle='#8B1A10';cx.fillRect(0,labelH+targetH,collage.width,footerH);
+        cx.fillStyle='#F2E8D5';cx.font='12px Georgia, serif';cx.textAlign='center';
+        cx.fillText(`✎  Drawn in ${formatDuration(durationSeconds)} — real time, no undo`,collage.width/2,labelH+targetH+21);
         collage.toBlob(blob=>resolve(blob),'image/png');
       };
       if(capturedPhotoImg.complete&&capturedPhotoImg.naturalWidth)finish();
@@ -1509,14 +1517,16 @@ if(canvas){
     const originalBtnText=saveBtn.textContent;
     saveBtn.textContent='Saving...';saveBtn.disabled=true;
     try{
-      const blob=await buildCollage();
+      const durationSeconds=window.drawStartTime?Math.max(1,Math.round((Date.now()-window.drawStartTime)/1000)):0;
+      const blob=await buildCollage(durationSeconds);
       const fileRef=window.fbRef(window.fbStorage,'memories/'+Date.now()+'_record.png');
       await window.fbUploadBytes(fileRef,blob);
       const imgUrl=await window.fbGetDownloadURL(fileRef);
-      await window.fbAddDoc(window.fbCollection(window.fbDb,'memories'),{name,place,title,image:imgUrl,createdAt:window.fbServerTimestamp()});
+      await window.fbAddDoc(window.fbCollection(window.fbDb,'memories'),{name,place,title,image:imgUrl,durationSeconds,createdAt:window.fbServerTimestamp()});
       showToast('Recorded. A real moment, held. ✦');
       ctx.clearRect(0,0,canvas.width,canvas.height);
       window.hasDrawnStroke=false;
+      window.drawStartTime=null;
       document.getElementById('drawingTitle').value='';
       document.getElementById('drawingPlace').value='';
       resetCameraUI();
@@ -1544,9 +1554,14 @@ if(canvas){
           const dt=m.createdAt.toDate();
           when=dt.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})+' · '+dt.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
         }
+        let durText='';
+        if(m.durationSeconds){
+          const mins=Math.floor(m.durationSeconds/60),secs=m.durationSeconds%60;
+          durText=mins>0?`${mins}m ${secs}s`:`${secs}s`;
+        }
         return `<div class="wall-item">
           <img src="${m.image}" alt="${m.title||'drawing'}" loading="lazy"/>
-          <div class="wall-meta"><div class="wall-title">${m.title}</div><div class="wall-by">${m.name}${m.place?' · '+m.place:''}</div><div class="wall-when">${when}</div></div>
+          <div class="wall-meta"><div class="wall-title">${m.title}</div><div class="wall-by">${m.name}${m.place?' · '+m.place:''}</div><div class="wall-when">${when}${durText?' · ✎ '+durText:''}</div></div>
         </div>`;
       }).join('');
     },err=>console.warn('memory wall error',err));
