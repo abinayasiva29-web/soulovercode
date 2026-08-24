@@ -29,6 +29,9 @@ window.fbAddDoc=addDoc;
 window.fbOnSnapshot=onSnapshot;
 window.fbQuery=query;
 window.fbOrderBy=orderBy;
+window.fbDoc=doc;
+window.fbSetDoc=setDoc;
+window.fbGetDoc=getDoc;
 window.fbServerTimestamp=serverTimestamp;
 window.fbRef=ref;
 window.fbUploadBytes=uploadBytes;
@@ -58,7 +61,7 @@ function renderLiveGallery(){
       <div class="gal-name">${c.title||c.craft||'Human Work'}</div>
       <div class="gal-creator">${c.name||'Anonymous'} · ${c.city||''}${c.city&&c.country?', ':''}${c.country||''}</div>
       <div class="gal-desc">${c.description||''}</div>
-      ${c.pulse&&c.pulse.length>2?`<div class="pulse-box pulse-inline"><div class="pulse-label">♥ Human Pulse</div><svg viewBox="0 0 300 32" class="pulse-svg"><polyline points="${pulseIntervalsToPoints(c.pulse,300,32)}" /></svg></div>`:''}
+      ${c.pulse&&c.pulse.length>2?`<div class="pulse-box pulse-inline"><div class="pulse-label">♥ Human Pulse${c.corrections?' · revised '+c.corrections+' time'+(c.corrections===1?'':'s'):''}</div><svg viewBox="0 0 300 32" class="pulse-svg"><polyline points="${pulseIntervalsToPoints(c.pulse,300,32)}" /></svg></div>`:''}
       <div class="gal-cert">🏃 Human Made Certified${formatCertDate(c.approvedAt)?' · '+formatCertDate(c.approvedAt):''} — click to view</div>
     </div>`).join('');
 }
@@ -77,6 +80,7 @@ window.openWorkLightbox=function(i){
   if(pulseBox){
     if(c.pulse&&c.pulse.length>2){
       pulseBox.style.display='block';
+      pulseBox.querySelector('.pulse-label').textContent='♥ Human Pulse — the rhythm of them writing this, live'+(c.corrections?' · revised '+c.corrections+' time'+(c.corrections===1?'':'s'):'');
       pulseBox.querySelector('polyline').setAttribute('points',pulseIntervalsToPoints(c.pulse,560,44));
     }else{pulseBox.style.display='none';}
   }
@@ -192,7 +196,7 @@ window.toggleVoiceRecording=async function(){
     if(voiceSeconds>=20)voiceRecorder.stop();
   },1000);
 };
-let pulseTimestamps=[],pulseHasPasted=false;
+let pulseTimestamps=[],pulseHasPasted=false,pulseCorrections=0;
 function pulseIntervalsToPoints(intervals,w,h){
   if(!intervals||intervals.length===0)return'';
   const cap=700,mid=h/2;
@@ -208,6 +212,8 @@ function renderLivePulse(){
   if(!svg)return;
   const poly=svg.querySelector('polyline');
   poly.setAttribute('points',pulseIntervalsToPoints(pulseTimestamps,600,50));
+  const cEl=document.getElementById('pulseCorrections');
+  if(cEl)cEl.textContent=pulseCorrections>0?`· revised ${pulseCorrections} time${pulseCorrections===1?'':'s'} while writing`:'';
 }
 function attachPulseTracking(){
   const el=document.getElementById('subDesc');
@@ -215,6 +221,7 @@ function attachPulseTracking(){
   el._pulseAttached=true;
   let lastT=null;
   el.addEventListener('keydown',e=>{
+    if(e.key==='Backspace'||e.key==='Delete')pulseCorrections++;
     if(e.key.length>1&&!['Backspace','Enter',' '].includes(e.key))return;
     const now=Date.now();
     if(lastT!==null)pulseTimestamps.push(now-lastT);
@@ -229,11 +236,13 @@ function attachPulseTracking(){
   });
 }
 function resetPulseTracking(){
-  pulseTimestamps=[];pulseHasPasted=false;
+  pulseTimestamps=[];pulseHasPasted=false;pulseCorrections=0;
   const el=document.getElementById('subDesc');
   if(el)el._pulseAttached=false;
   const svg=document.getElementById('pulseSvgLive');
   if(svg)svg.querySelector('polyline').setAttribute('points','');
+  const cEl=document.getElementById('pulseCorrections');
+  if(cEl)cEl.textContent='';
 }
 document.addEventListener('DOMContentLoaded',attachPulseTracking);
 setTimeout(attachPulseTracking,500);
@@ -271,7 +280,7 @@ window.submitCreatorWork=async function(){
       voiceNote=await getDownloadURL(voiceRef);
     }
     btn.textContent='Submitting...';
-    await addDoc(collection(db,'creators'),{name,email,city,country,craft,mood,title,description,imperfection,link,image,voiceNote,pulse:pulseTimestamps.slice(),status:'pending',submittedAt:serverTimestamp()});
+    await addDoc(collection(db,'creators'),{name,email,city,country,craft,mood,title,description,imperfection,link,image,voiceNote,pulse:pulseTimestamps.slice(),corrections:pulseCorrections,status:'pending',submittedAt:serverTimestamp()});
     emailjs.send('service_9014kid','template_zr374rg',{
       to_email:'abinayasiva29@gmail.com',
       name:name,city:city,country:country,craft:craft,
@@ -514,6 +523,24 @@ body::before{
 .wb-shared-count{font-family:'Playfair Display',serif;font-weight:900;font-size:1.8rem;margin-bottom:10px;}
 .wb-shared-note p{font-family:'IM Fell English',serif;font-style:italic;font-size:13px;color:rgba(242,232,213,0.75);line-height:1.5;margin:0;}
 .sketchbook-bg{background:var(--aged3);}
+.capsule-bg{background:var(--ink);color:var(--aged);}
+.capsule-bg .section-kicker{color:#C99A52;}
+.capsule-bg .section-title{color:var(--aged);}
+.capsule-layout{display:grid;grid-template-columns:1fr 1fr;gap:2rem;}
+@media(max-width:768px){.capsule-layout{grid-template-columns:1fr;}}
+.capsule-form-box .wb-input{background:rgba(242,232,213,0.95);}
+.capsule-count{font-family:'Special Elite',cursive;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#C99A52;margin-bottom:14px;border-bottom:1px solid rgba(242,232,213,0.2);padding-bottom:10px;}
+.capsule-list{max-height:420px;overflow-y:auto;}
+.capsule-item{border:1px solid rgba(242,232,213,0.2);padding:14px;margin-bottom:10px;}
+.capsule-item.locked{opacity:0.7;}
+.capsule-item-top{display:flex;justify-content:space-between;align-items:baseline;font-family:'Special Elite',cursive;font-size:10px;letter-spacing:0.5px;text-transform:uppercase;color:#C99A52;margin-bottom:6px;}
+.capsule-item-name{font-family:'Playfair Display',serif;font-weight:700;font-size:1rem;color:var(--aged);margin-bottom:4px;}
+.capsule-item-message{font-family:'IM Fell English',serif;font-style:italic;font-size:14px;color:rgba(242,232,213,0.85);line-height:1.5;}
+.capsule-item-locked-text{font-family:'IM Fell English',serif;font-style:italic;font-size:13px;color:rgba(242,232,213,0.5);}
+.collective-bg{background:var(--aged2);}
+.collective-info{display:flex;justify-content:space-between;font-family:'Special Elite',cursive;font-size:11px;letter-spacing:0.5px;text-transform:uppercase;color:var(--red-ink);margin-bottom:14px;flex-wrap:wrap;gap:8px;}
+.collective-canvas-wrap{border:2px solid var(--ink);background:var(--aged);}
+#collectiveCanvas{width:100%;height:auto;display:block;cursor:crosshair;touch-action:none;}
 .memory-wall{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1px;background:var(--border-ink);border:1px solid var(--border-ink);}
 .wall-item{background:var(--aged);padding:0.75rem;}
 .wall-item img{width:100%;height:160px;object-fit:contain;background:#fff;border:1px solid var(--border-ink);margin-bottom:8px;}
@@ -521,6 +548,7 @@ body::before{
 .wall-title{font-family:'Playfair Display',serif;font-weight:700;font-size:0.9rem;margin-bottom:2px;}
 .wall-by{font-family:'IM Fell English',serif;font-style:italic;font-size:11px;color:var(--ink-faded);}
 .wall-when{font-family:'Special Elite',cursive;font-size:9px;letter-spacing:0.5px;color:#8B1A10;margin-top:3px;}
+.wall-weather{font-family:'IM Fell English',serif;font-style:italic;font-size:11px;color:var(--ink-light);margin-top:3px;}
 #memoriesBox{display:flex;flex-direction:column;gap:8px;max-height:420px;overflow-y:auto;}
 .mem-item{border:1.5px solid var(--border-ink);}
 .mem-item img{width:100%;display:block;border-bottom:1px solid var(--border-ink);filter:sepia(10%);}
@@ -1029,6 +1057,50 @@ footer{background:var(--ink2);border-top:4px double var(--red-ink);padding:2rem 
   </div>
 </section>
 
+<!-- ═══ TIME CAPSULE ═══ -->
+<section class="gazette-section capsule-bg" id="capsule">
+  <div class="section-masthead">
+    <div class="section-kicker">A Message Only Time Can Open</div>
+    <h2 class="section-title">The Time Capsule</h2>
+    <p style="font-family:'IM Fell English',serif;font-size:15px;color:var(--ink-faded);margin-top:10px;font-style:italic;">AI has no future it's waiting for. It cannot want something to arrive years from now. Write something today — to strangers, to yourself, to whoever's here later — and seal it. Nobody, not even you, can read it again until the date you choose.</p>
+  </div>
+  <div class="capsule-layout">
+    <div class="capsule-form-box">
+      <input type="text" id="capsuleName" class="wb-input" placeholder="Your name*">
+      <textarea id="capsuleMessage" class="wb-input" placeholder="Write what you want the future to read*" style="min-height:110px;"></textarea>
+      <select id="capsuleDuration" class="wb-input">
+        <option value="1">Seal for 1 year</option>
+        <option value="5" selected>Seal for 5 years</option>
+        <option value="10">Seal for 10 years</option>
+      </select>
+      <button onclick="sealCapsule()" class="wb-save-btn">Seal This Message →</button>
+      <p style="font-family:'Special Elite',cursive;font-size:10px;color:var(--ink-light);margin-top:8px;">Once sealed, this cannot be unsealed early — not by you, not by anyone.</p>
+    </div>
+    <div class="capsule-list-box">
+      <div class="capsule-count"><span id="capsuleCount">0</span> messages sealed · <span id="capsuleReadyCount">0</span> ready to open</div>
+      <div id="capsuleList" class="capsule-list">
+        <div class="wb-empty">No capsules sealed yet.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ COLLECTIVE CANVAS ═══ -->
+<section class="gazette-section collective-bg" id="collective">
+  <div class="section-masthead">
+    <div class="section-kicker">One Wall, Every Hand</div>
+    <h2 class="section-title">The Collective Canvas</h2>
+    <p style="font-family:'IM Fell English',serif;font-size:15px;color:var(--ink-faded);margin-top:10px;font-style:italic;">This is not your drawing. It's everyone's. Add a few strokes, then step back — a stranger somewhere will add the next ones. It never resets. It only grows, one real hand at a time.</p>
+  </div>
+  <div class="collective-info">
+    <span><strong id="collectiveTotalStrokes">0</strong> strokes added by humans so far</span>
+    <span id="collectiveStrokesLeft">You have 5 strokes to contribute</span>
+  </div>
+  <div class="collective-canvas-wrap">
+    <canvas id="collectiveCanvas" width="900" height="420"></canvas>
+  </div>
+</section>
+
 <!-- ═══ WORD OF THE DAY ═══ -->
 <section class="gazette-section wotd-bg" id="wotd">
   <div class="section-masthead">
@@ -1268,7 +1340,7 @@ footer{background:var(--ink2);border-top:4px double var(--red-ink);padding:2rem 
       <input type="text" id="subTitle" class="sub-input" placeholder="Title of your work"/>
       <textarea id="subDesc" class="sub-input" placeholder="Tell us about it — what makes it yours*"></textarea>
       <div class="pulse-box">
-        <div class="pulse-label">♥ Your Human Pulse — the rhythm of you actually writing this, live</div>
+        <div class="pulse-label">♥ Your Human Pulse — the rhythm of you actually writing this, live <span id="pulseCorrections"></span></div>
         <svg id="pulseSvgLive" viewBox="0 0 600 50" class="pulse-svg"><polyline points="" /></svg>
       </div>
       <textarea id="subImperfection" class="sub-input" placeholder="Optional: one thing about this that isn't perfect — and why you kept it anyway"></textarea>
@@ -1606,6 +1678,27 @@ if(canvas){
     document.getElementById('wbCameraRetakeBtn').style.display='none';
   }
 
+  const WEATHER_KEY='AIzaSyDfxD3VcYFZjwYj50fNpQLwZ9ynNLRQ488';
+  function getWeatherWitness(){
+    return new Promise(resolve=>{
+      if(!navigator.geolocation){resolve('');return;}
+      const timer=setTimeout(()=>resolve(''),4000);
+      navigator.geolocation.getCurrentPosition(async pos=>{
+        try{
+          const {latitude,longitude}=pos.coords;
+          const res=await fetch(`https://weather.googleapis.com/v1/currentConditions:lookup?key=${WEATHER_KEY}&location.latitude=${latitude}&location.longitude=${longitude}`);
+          const data=await res.json();
+          clearTimeout(timer);
+          if(data.temperature&&data.weatherCondition){
+            const temp=Math.round(data.temperature.degrees);
+            const cond=data.weatherCondition.description?.text||'';
+            resolve(`${temp}°C${cond?', '+cond:''}`);
+          }else resolve('');
+        }catch(e){clearTimeout(timer);resolve('');}
+      },()=>{clearTimeout(timer);resolve('');},{timeout:4000});
+    });
+  }
+
   window.saveDrawing=async function(){
     if(!window.fbDb){showToast('Still loading — please wait a second and try again.');return;}
     const name=document.getElementById('drawingName').value.trim();
@@ -1621,11 +1714,12 @@ if(canvas){
     saveBtn.textContent='Saving...';saveBtn.disabled=true;
     try{
       const durationSeconds=window.drawStartTime?Math.max(1,Math.round((Date.now()-window.drawStartTime)/1000)):0;
+      const weather=await getWeatherWitness();
       const blob=await buildCollage(durationSeconds);
       const fileRef=window.fbRef(window.fbStorage,'memories/'+Date.now()+'_record.png');
       await window.fbUploadBytes(fileRef,blob);
       const imgUrl=await window.fbGetDownloadURL(fileRef);
-      await window.fbAddDoc(window.fbCollection(window.fbDb,'memories'),{name,place,title,image:imgUrl,durationSeconds,createdAt:window.fbServerTimestamp()});
+      await window.fbAddDoc(window.fbCollection(window.fbDb,'memories'),{name,place,title,image:imgUrl,durationSeconds,weather,createdAt:window.fbServerTimestamp()});
       showToast('Recorded. A real moment, held. ✦');
       ctx.clearRect(0,0,canvas.width,canvas.height);
       window.hasDrawnStroke=false;
@@ -1664,7 +1758,7 @@ if(canvas){
         }
         return `<div class="wall-item">
           <img src="${m.image}" alt="${m.title||'drawing'}" loading="lazy"/>
-          <div class="wall-meta"><div class="wall-title">${m.title}</div><div class="wall-by">${m.name}${m.place?' · '+m.place:''}</div><div class="wall-when">${when}${durText?' · ✎ '+durText:''}</div></div>
+          <div class="wall-meta"><div class="wall-title">${m.title}</div><div class="wall-by">${m.name}${m.place?' · '+m.place:''}</div><div class="wall-when">${when}${durText?' · ✎ '+durText:''}</div>${m.weather?`<div class="wall-weather">☁ ${m.weather}</div>`:''}</div>
         </div>`;
       }).join('');
     },err=>console.warn('memory wall error',err));
@@ -1677,6 +1771,172 @@ if(canvas){
   }
   whenFirebaseReady(subscribeMemoryWall);
 }
+
+window.sealCapsule=async function(){
+  if(!window.fbDb){showToast('Still loading — please wait a second and try again.');return;}
+  const name=document.getElementById('capsuleName').value.trim();
+  const message=document.getElementById('capsuleMessage').value.trim();
+  const years=parseInt(document.getElementById('capsuleDuration').value,10);
+  if(!name){showToast('Please add your name.');return;}
+  if(!message){showToast('Write something to seal first.');return;}
+  const btn=document.querySelector('#capsule .wb-save-btn');
+  const orig=btn.textContent;
+  btn.textContent='Sealing...';btn.disabled=true;
+  try{
+    const revealDate=new Date(Date.now()+years*365*24*60*60*1000);
+    const metaRef=await window.fbAddDoc(window.fbCollection(window.fbDb,'capsules'),{name,revealDate,sealedAt:window.fbServerTimestamp()});
+    await window.fbSetDoc(window.fbDoc(window.fbDb,'capsule_messages',metaRef.id),{message,revealDate});
+    document.getElementById('capsuleName').value='';
+    document.getElementById('capsuleMessage').value='';
+    showToast('Sealed. Nobody will read this until the date arrives. ✦');
+  }catch(e){
+    showToast('Something went wrong sealing your message. Please try again.');
+    console.error(e);
+  }
+  btn.textContent=orig;btn.disabled=false;
+};
+async function subscribeCapsules(){
+  const listEl=document.getElementById('capsuleList');
+  const countEl=document.getElementById('capsuleCount');
+  const readyEl=document.getElementById('capsuleReadyCount');
+  if(!listEl)return;
+  const q=window.fbQuery(window.fbCollection(window.fbDb,'capsules'),window.fbOrderBy('sealedAt','desc'));
+  window.fbOnSnapshot(q,async snap=>{
+    const items=snap.docs.map(d=>({id:d.id,...d.data()}));
+    if(countEl)countEl.textContent=items.length;
+    const now=new Date();
+    const readyItems=items.filter(c=>c.revealDate&&c.revealDate.toDate&&c.revealDate.toDate()<=now);
+    if(readyEl)readyEl.textContent=readyItems.length;
+    if(items.length===0){listEl.innerHTML='<div class="wb-empty">No capsules sealed yet.</div>';return;}
+    const rendered=await Promise.all(items.map(async c=>{
+      const rd=c.revealDate&&c.revealDate.toDate?c.revealDate.toDate():null;
+      const isReady=rd&&rd<=now;
+      const dateStr=rd?rd.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):'';
+      if(!isReady){
+        return `<div class="capsule-item locked">
+          <div class="capsule-item-top"><span>🔒 Sealed</span><span>Opens ${dateStr}</span></div>
+          <div class="capsule-item-name">${c.name}</div>
+          <div class="capsule-item-locked-text">This message is not readable yet — not even by its author.</div>
+        </div>`;
+      }
+      try{
+        const msgSnap=await window.fbGetDoc(window.fbDoc(window.fbDb,'capsule_messages',c.id));
+        const msg=msgSnap.exists()?msgSnap.data().message:'';
+        return `<div class="capsule-item">
+          <div class="capsule-item-top"><span>🔓 Opened</span><span>${dateStr}</span></div>
+          <div class="capsule-item-name">${c.name}</div>
+          <div class="capsule-item-message">"${msg}"</div>
+        </div>`;
+      }catch(e){
+        return `<div class="capsule-item locked">
+          <div class="capsule-item-top"><span>🔒 Sealed</span><span>Opens ${dateStr}</span></div>
+          <div class="capsule-item-name">${c.name}</div>
+        </div>`;
+      }
+    }));
+    listEl.innerHTML=rendered.join('');
+  },err=>console.warn('capsules error',err));
+}
+(function(){
+  function whenFbReadyForCapsules(triesLeft){
+    triesLeft=triesLeft===undefined?100:triesLeft;
+    if(window.fbDb&&window.fbCollection&&window.fbOnSnapshot){subscribeCapsules();return;}
+    if(triesLeft<=0)return;
+    setTimeout(()=>whenFbReadyForCapsules(triesLeft-1),50);
+  }
+  whenFbReadyForCapsules();
+})();
+
+(function(){
+  const collCanvas=document.getElementById('collectiveCanvas');
+  if(!collCanvas)return;
+  const cctx=collCanvas.getContext('2d');
+  cctx.lineCap='round';cctx.lineJoin='round';
+  const MAX_STROKES=5;
+  let strokesUsed=parseInt(localStorage.getItem('soc_collective_strokes')||'0',10);
+  let currentStroke=null,collDrawing=false;
+  function updateStrokesLeftLabel(){
+    const el=document.getElementById('collectiveStrokesLeft');
+    if(!el)return;
+    const left=Math.max(0,MAX_STROKES-strokesUsed);
+    el.textContent=left>0?`You have ${left} stroke${left===1?'':'s'} left to contribute`:'You\'ve added your strokes — someone else\'s turn now';
+  }
+  updateStrokesLeftLabel();
+  function collGetPos(e){
+    const r=collCanvas.getBoundingClientRect();
+    const sx=collCanvas.width/r.width,sy=collCanvas.height/r.height;
+    if(e.touches)return{x:(e.touches[0].clientX-r.left)*sx,y:(e.touches[0].clientY-r.top)*sy};
+    return{x:(e.clientX-r.left)*sx,y:(e.clientY-r.top)*sy};
+  }
+  function drawStrokeOnCanvas(points,color){
+    if(!points||points.length<2)return;
+    cctx.strokeStyle=color||'#1A1208';cctx.lineWidth=2.5;
+    cctx.beginPath();
+    cctx.moveTo(points[0].x,points[0].y);
+    for(let i=1;i<points.length;i++)cctx.lineTo(points[i].x,points[i].y);
+    cctx.stroke();
+  }
+  function collStart(e){
+    if(strokesUsed>=MAX_STROKES){showToast('You\'ve used all 5 of your strokes — let someone else add to the wall.');return;}
+    e.preventDefault();collDrawing=true;
+    currentStroke=[collGetPos(e)];
+  }
+  function collMove(e){
+    if(!collDrawing)return;
+    e.preventDefault();
+    const p=collGetPos(e);
+    currentStroke.push(p);
+    drawStrokeOnCanvas([currentStroke[currentStroke.length-2],p],'#1A1208');
+  }
+  async function collEnd(){
+    if(!collDrawing)return;
+    collDrawing=false;
+    if(!currentStroke||currentStroke.length<2){currentStroke=null;return;}
+    strokesUsed++;
+    localStorage.setItem('soc_collective_strokes',String(strokesUsed));
+    updateStrokesLeftLabel();
+    const pointsToSave=currentStroke;
+    currentStroke=null;
+    if(window.fbDb){
+      try{
+        await window.fbAddDoc(window.fbCollection(window.fbDb,'canvas_strokes'),{
+          points:pointsToSave.map(p=>({x:Math.round(p.x),y:Math.round(p.y)})),
+          color:'#1A1208',createdAt:window.fbServerTimestamp()
+        });
+      }catch(e){console.warn('collective stroke save failed',e);}
+    }
+  }
+  collCanvas.addEventListener('mousedown',collStart);
+  collCanvas.addEventListener('mousemove',collMove);
+  collCanvas.addEventListener('mouseup',collEnd);
+  collCanvas.addEventListener('mouseleave',collEnd);
+  collCanvas.addEventListener('touchstart',collStart,{passive:false});
+  collCanvas.addEventListener('touchmove',collMove,{passive:false});
+  collCanvas.addEventListener('touchend',collEnd);
+
+  const seenStrokeIds=new Set();
+  function subscribeCollective(){
+    const q=window.fbQuery(window.fbCollection(window.fbDb,'canvas_strokes'),window.fbOrderBy('createdAt','asc'));
+    window.fbOnSnapshot(q,snap=>{
+      const countEl=document.getElementById('collectiveTotalStrokes');
+      if(countEl)countEl.textContent=snap.docs.length;
+      snap.docChanges().forEach(change=>{
+        if(change.type==='added'&&!seenStrokeIds.has(change.doc.id)){
+          seenStrokeIds.add(change.doc.id);
+          const data=change.doc.data();
+          drawStrokeOnCanvas(data.points,data.color);
+        }
+      });
+    },err=>console.warn('collective canvas error',err));
+  }
+  function whenFbReadyForCollective(triesLeft){
+    triesLeft=triesLeft===undefined?100:triesLeft;
+    if(window.fbDb&&window.fbCollection&&window.fbOnSnapshot){subscribeCollective();return;}
+    if(triesLeft<=0)return;
+    setTimeout(()=>whenFbReadyForCollective(triesLeft-1),50);
+  }
+  whenFbReadyForCollective();
+})();
 
 // WORLD CREATOR MAP — driven by live approved submissions (see subscribeLiveCreators above)
 const WORLD_MAP_STYLE=[
