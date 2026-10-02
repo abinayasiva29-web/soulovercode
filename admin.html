@@ -28,6 +28,17 @@ h1{font-size:1.4rem;margin-bottom:1.5rem;}
 .reject{background:#8B1A10;color:#fff;}
 .empty{opacity:0.5;text-align:center;padding:3rem;}
 .status{font-size:12px;margin-top:8px;color:#C99A52;}
+.section-divider{margin:2.5rem 0 1.5rem;border-top:1px solid rgba(242,232,213,0.15);padding-top:1.5rem;}
+.pform input,.pform textarea{width:100%;padding:10px;margin-bottom:10px;border:none;background:#1A1208;color:#F2E8D5;font-family:inherit;font-size:13px;}
+.pform textarea{min-height:80px;}
+.pform button{width:100%;padding:12px;background:#8B1A10;color:#F2E8D5;border:none;cursor:pointer;font-size:14px;}
+.pform button:disabled{opacity:0.5;}
+.precious-row{display:flex;gap:12px;align-items:center;background:#2C1F0E;border:1px solid rgba(242,232,213,0.15);padding:10px;margin-bottom:8px;}
+.precious-row img{width:50px;height:50px;object-fit:cover;flex-shrink:0;}
+.precious-row .info{flex:1;}
+.precious-row .info b{font-size:13px;}
+.precious-row .info div{font-size:11px;color:rgba(242,232,213,0.5);}
+.precious-row button{background:#8B1A10;color:#fff;border:none;padding:6px 12px;font-size:11px;cursor:pointer;}
 </style>
 </head>
 <body>
@@ -45,18 +56,36 @@ h1{font-size:1.4rem;margin-bottom:1.5rem;}
 <div id="app">
   <h1>Pending Submissions — Review &amp; Approve</h1>
   <div id="list"><div class="empty">Loading…</div></div>
+
+  <div class="section-divider">
+    <h1>Add a Precious Human Creator</h1>
+    <div class="pform">
+      <input type="text" id="pName" placeholder="Name*"/>
+      <input type="text" id="pHonorific" placeholder="Honorific (e.g. Our Generation's Thiruvalluvar) — optional"/>
+      <textarea id="pBio" placeholder="Their story — who they are, why they matter*"></textarea>
+      <input type="text" id="pWorks" placeholder="Notable works, comma or dot separated — optional"/>
+      <input type="text" id="pQuote" placeholder="A quote about them or from them — optional"/>
+      <input type="file" id="pPhoto" accept="image/*"/>
+      <button onclick="addPrecious()" id="pAddBtn">Add to the Collection →</button>
+    </div>
+
+    <h1 style="margin-top:2rem;">Manage Existing (<span id="pCount">0</span>)</h1>
+    <div id="pList"></div>
+  </div>
 </div>
 
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import{getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import{getFirestore,collection,query,where,onSnapshot,doc,updateDoc,serverTimestamp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import{getFirestore,collection,query,where,onSnapshot,doc,updateDoc,deleteDoc,addDoc,orderBy,serverTimestamp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import{getStorage,ref,uploadBytes,getDownloadURL}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
 import{initializeAppCheck,ReCaptchaV3Provider}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check.js";
 const app=initializeApp({apiKey:"AIzaSyBaJF1NUzeMdukAEO-Z3MzOkmBpdg26QOs",authDomain:"soulovercode.firebaseapp.com",projectId:"soulovercode",storageBucket:"soulovercode.firebasestorage.app",messagingSenderId:"444742946957",appId:"1:444742946957:web:cd4c309ad2ec00d3fb52c4"});
 initializeAppCheck(app,{provider:new ReCaptchaV3Provider('6LcgcnYtAAAAACByp5DFgS8M1TcNGujmyk_uAuQT'),isTokenAutoRefreshEnabled:true});
 const db=getFirestore(app);
 const auth=getAuth(app);
+const storage=getStorage(app);
 
 // Same Maps key as your main site — must have "Geocoding API" enabled too (see instructions).
 const MAPS_KEY="AIzaSyDfxD3VcYFZjwYj50fNpQLwZ9ynNLRQ488";
@@ -136,6 +165,65 @@ function startListening(){
     }).join('');
   });
 }
+
+window.addPrecious=async function(){
+  const name=document.getElementById('pName').value.trim();
+  const honorific=document.getElementById('pHonorific').value.trim();
+  const bio=document.getElementById('pBio').value.trim();
+  const works=document.getElementById('pWorks').value.trim();
+  const quote=document.getElementById('pQuote').value.trim();
+  const fileInput=document.getElementById('pPhoto');
+  const file=fileInput.files[0];
+  if(!name||!bio){alert('Name and bio are required.');return;}
+  if(!file){alert('Please choose a photo.');return;}
+  const btn=document.getElementById('pAddBtn');
+  const orig=btn.textContent;
+  btn.textContent='Uploading photo...';btn.disabled=true;
+  try{
+    const fileRef=ref(storage,'precious/'+Date.now()+'_'+file.name.replace(/[^a-zA-Z0-9.\-_]/g,''));
+    await uploadBytes(fileRef,file);
+    const photoUrl=await getDownloadURL(fileRef);
+    btn.textContent='Saving...';
+    await addDoc(collection(db,'precious_creators'),{name,honorific,bio,works,quote,photo:photoUrl,addedAt:serverTimestamp()});
+    document.getElementById('pName').value='';
+    document.getElementById('pHonorific').value='';
+    document.getElementById('pBio').value='';
+    document.getElementById('pWorks').value='';
+    document.getElementById('pQuote').value='';
+    fileInput.value='';
+    btn.textContent='Added! ✦';
+    setTimeout(()=>{btn.textContent=orig;},1500);
+  }catch(e){
+    alert('Something went wrong: '+e.message);
+    btn.textContent=orig;
+  }
+  btn.disabled=false;
+};
+
+window.deletePrecious=async function(id){
+  if(!confirm('Remove this person from the collection? This cannot be undone.'))return;
+  await deleteDoc(doc(db,'precious_creators',id));
+};
+
+function startListeningPrecious(){
+  const q=query(collection(db,'precious_creators'),orderBy('addedAt','desc'));
+  onSnapshot(q,snap=>{
+    const countEl=document.getElementById('pCount');
+    const listEl=document.getElementById('pList');
+    if(countEl)countEl.textContent=snap.size;
+    if(!listEl)return;
+    if(snap.empty){listEl.innerHTML='<div class="empty">None added yet.</div>';return;}
+    listEl.innerHTML=snap.docs.map(d=>{
+      const p=d.data();
+      return `<div class="precious-row">
+        <img src="${p.photo}" alt="${p.name}"/>
+        <div class="info"><b>${p.name}</b><div>${p.honorific||''}</div></div>
+        <button onclick="deletePrecious('${d.id}')">Remove</button>
+      </div>`;
+    }).join('');
+  },err=>console.warn('precious admin list error',err));
+}
+startListeningPrecious();
 </script>
 </body>
 </html>
