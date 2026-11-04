@@ -1554,6 +1554,34 @@ showWord(wi);
 function nextWord(){wi=(wi+1)%words.length;showWord(wi);}
 function prevWord(){wi=(wi-1+words.length)%words.length;showWord(wi);}
 
+// ═══ DID YOU KNOW — rotates daily through human creative history ═══
+const DYK_FACTS = [
+  `The oldest known piece of human art is a <strong>73,000-year-old hashtag</strong> — a red crosshatch pattern drawn by a human hand in Blombos Cave, South Africa. Human creativity predates language itself. No algorithm was needed.`,
+  `Leonardo da Vinci spent over a decade quietly revising the <strong>Mona Lisa</strong>, never considering it finished. He carried it with him until the day he died.`,
+  `Herman Melville died believing <strong>Moby-Dick</strong> was a failure — it sold so poorly in his lifetime that he never saw it recognized as a masterpiece.`,
+  `Vincent van Gogh painted <strong>The Starry Night</strong> from the window of an asylum, during one of the most difficult stretches of his life.`,
+  `Mary Shelley wrote <strong>Frankenstein</strong> when she was just 18 years old, during a rainy summer spent telling ghost stories with friends.`,
+  `The premiere of Stravinsky's <strong>The Rite of Spring</strong> in 1913 caused an actual riot in the Paris audience — human creativity has always been capable of shaking people awake.`,
+  `Gabriel García Márquez wrote <strong>One Hundred Years of Solitude</strong> in an 18-month creative sprint so intense it nearly bankrupted his family.`,
+  `Antoine de Saint-Exupéry wrote <strong>The Little Prince</strong> while living far from home, in exile — a story of longing, written from longing.`,
+  `Beethoven composed some of his most celebrated music, including parts of the <strong>Ninth Symphony</strong>, after he had gone almost completely deaf.`,
+  `The cave paintings at <strong>Lascaux, France</strong> are over 17,000 years old — created by firelight, by hand, for reasons we still don't fully understand. That mystery is part of what makes them human.`
+];
+
+function dykDayIndex(len){
+  const d = new Date();
+  const start = new Date(d.getFullYear(), 0, 0);
+  const dayOfYear = Math.floor((d - start) / 86400000);
+  return dayOfYear % len;
+}
+
+(function renderDYK(){
+  const el = document.getElementById('dykText');
+  if(!el) return;
+  el.innerHTML = DYK_FACTS[dykDayIndex(DYK_FACTS.length)];
+})();
+
+
 const TTS_KEY='AIzaSyDfxD3VcYFZjwYj50fNpQLwZ9ynNLRQ488';
 window.speakWord=async function(){
   const btn=document.getElementById('wotdSpeakBtn');
