@@ -118,6 +118,38 @@ function renderLiveGallery(){
       <div class="gal-cert">🏃 Human Made Certified${formatCertDate(c.approvedAt)?' · '+formatCertDate(c.approvedAt):''} — click to view</div>
     </div>`).join('');
 }
+function renderLeaderboard(list){
+  const cEl=document.getElementById('lbCountries');
+  const fEl=document.getElementById('lbCrafts');
+  if(!cEl||!fEl)return;
+  if(!list||list.length===0){
+    cEl.innerHTML='<div class="lb-empty">Be the first human on the map.</div>';
+    fEl.innerHTML='<div class="lb-empty">Be the first to put your craft on record.</div>';
+    return;
+  }
+  function tally(key){
+    const counts={};
+    list.forEach(c=>{
+      const v=(c[key]||'').trim();
+      if(!v)return;
+      counts[v]=(counts[v]||0)+1;
+    });
+    return Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  }
+  function renderRows(entries){
+    if(entries.length===0)return '<div class="lb-empty">No entries yet.</div>';
+    const max=entries[0][1];
+    return entries.map((e,i)=>`
+      <div class="lb-row">
+        <div class="lb-rank">${i+1}.</div>
+        <div class="lb-name">${e[0]}</div>
+        <div class="lb-bar-wrap"><div class="lb-bar" style="width:${Math.max(8,(e[1]/max)*100)}%;"></div></div>
+        <div class="lb-count">${e[1]}</div>
+      </div>`).join('');
+  }
+  cEl.innerHTML=renderRows(tally('country'));
+  fEl.innerHTML=renderRows(tally('craft'));
+}
 const TRANSLATE_KEY='AIzaSyDfxD3VcYFZjwYj50fNpQLwZ9ynNLRQ488';
 let lbCurrentWork=null,lbShowingTranslation=false,lbTranslationCache={};
 window.openWorkLightbox=function(i){
@@ -205,6 +237,7 @@ function subscribeLiveCreators(){
     window.liveCreators=snap.docs.map(d=>({id:d.id,...d.data()}));
     renderLiveGallery();
     renderMapMarkers(window.liveCreators);
+    renderLeaderboard(window.liveCreators);
     const fc=document.getElementById('folderCount');
     if(fc)fc.textContent=window.liveCreators.length;
   },err=>console.warn('creators feed error',err));
@@ -687,6 +720,18 @@ body::before{
 
 /* ═══════════════════════════════════ WORLD MAP */
 .map-bg{background:var(--aged);}
+.leaderboard-bg{background:var(--aged2);}
+.lb-grid{display:grid;grid-template-columns:1fr 1fr;gap:2.5rem;margin-top:0.5rem;}
+@media(max-width:700px){.lb-grid{grid-template-columns:1fr;}}
+.lb-col-title{font-family:'Special Elite',cursive;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--red-ink);margin-bottom:1rem;border-bottom:1px solid var(--border-ink);padding-bottom:6px;}
+.lb-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.lb-rank{font-family:'Special Elite',cursive;font-size:12px;color:var(--ink-faded);width:20px;flex-shrink:0;}
+.lb-name{font-family:'Crimson Text',serif;font-size:15px;color:var(--ink);flex-shrink:0;min-width:110px;}
+.lb-bar-wrap{flex:1;background:var(--aged3);height:14px;position:relative;}
+.lb-bar{background:var(--red-ink);height:100%;}
+.lb-count{font-family:'Special Elite',cursive;font-size:12px;color:var(--ink-faded);width:28px;text-align:right;flex-shrink:0;}
+.lb-empty{font-family:'IM Fell English',serif;font-style:italic;color:var(--ink-faded);font-size:14px;}
+
 .precious-bg{background:var(--aged3);}
 .precious-stats{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;font-family:'Special Elite',cursive;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--red-ink);flex-wrap:wrap;gap:10px;}
 .precious-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:4px;}
@@ -1282,6 +1327,25 @@ footer{background:var(--ink2);border-top:4px double var(--red-ink);padding:2rem 
 </div>
 
 <!-- ═══ WORLD MAP ═══ -->
+<!-- ═══ LEADERBOARD ═══ -->
+<section class="gazette-section leaderboard-bg" id="leaderboard">
+  <div class="section-masthead">
+    <div class="section-kicker">World Creators, By The Numbers</div>
+    <h2 class="section-title">The Leaderboard</h2>
+    <p style="font-family:'IM Fell English',serif;font-size:15px;color:var(--ink-faded);margin-top:8px;font-style:italic;">Which countries and crafts are shaping Soul Over Code right now — and which ones are still waiting for their first human.</p>
+  </div>
+  <div class="lb-grid">
+    <div class="lb-col">
+      <div class="lb-col-title">Top Countries</div>
+      <div id="lbCountries" class="lb-rows"><div class="lb-empty">Be the first human on the map.</div></div>
+    </div>
+    <div class="lb-col">
+      <div class="lb-col-title">Top Crafts</div>
+      <div id="lbCrafts" class="lb-rows"><div class="lb-empty">Be the first to put your craft on record.</div></div>
+    </div>
+  </div>
+</section>
+
 <section class="gazette-section map-bg" id="map">
   <div class="section-masthead">
     <div class="section-kicker">Dispatched From Everywhere</div>
